@@ -1,0 +1,103 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "aiosqlite>=0.21.0",
+    "alembic>=1.17.0",
+    "fastapi[standard]>=0.119.0",
+    "passlib[bcrypt]>=1.7.4",
+    "pydantic-settings>=2.11.0",
+    "python-jose[cryptography]>=3.5.0",
+    "sqlmodel>=0.0.27",
+]
+
+[dependency-groups]
+dev = [{ include-group = "lint" }, { include-group = "test" }]
+lint = ["ruff>=0.14.0"]
+test = ["pytest>=8.4.2"]
+
+[tool.ruff]
+# Python 3.13 como target
+target-version = "py313"
+line-length = 100
+
+# Directorios a excluir
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "alembic/versions/*.py",
+]
+
+[tool.ruff.lint]
+# Reglas activas (siguiendo mejores prácticas de Python)
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (ordenar imports)
+    "UP",  # pyupgrade (modernizar código)
+    "B",   # flake8-bugbear (bugs comunes)
+    "C4",  # flake8-comprehensions
+    "DTZ", # flake8-datetimez (zonas horarias)
+    "T10", # flake8-debugger
+    "FA",  # flake8-future-annotations
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "PIE", # flake8-pie
+    "PT",  # flake8-pytest-style
+    "Q",   # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "PL",  # pylint
+    "TRY", # tryceratops
+    "RUF", # Ruff-specific rules
+]
+
+# Reglas a ignorar
+ignore = [
+    "E501",  # line too long (manejado por formatter)
+    "B008",  # do not perform function calls in argument defaults (común en FastAPI Depends)
+    "UP007", # use X | Y for Union (preferimos Optional/Union explícitos)
+    "TC001", # Move application imports into TYPE_CHECKING block (renombrado de TCH001)
+    "TC002", # Move third-party imports into TYPE_CHECKING block (renombrado de TCH002)
+    "TC003", # Move standard library imports into TYPE_CHECKING block (renombrado de TCH003)
+]
+
+# Permitir auto-fix para estas reglas
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.per-file-ignores]
+# Permitir imports no usados en __init__.py
+"__init__.py" = ["F401"]
+# Permitir prints y asserts en scripts
+"scripts/*.py" = ["T201", "S101"]
+# Permitir imports relativos en tests
+"tests/**/*.py" = ["TID252"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.format]
+# Usar comillas dobles
+quote-style = "double"
+# Usar trailing commas
+skip-magic-trailing-comma = false
