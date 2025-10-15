@@ -12,6 +12,7 @@
 @hrToken = tu_token_de_hr_aqui
 @userId = 1
 @fichajeId = 1
+@solicitudId = 1
 
 ################################################################################
 # AUTENTICACIÓN
@@ -287,6 +288,248 @@ Authorization: Bearer {{hrToken}}
 ### 81. Empleado intenta ver estadísticas generales (debería fallar con 403)
 GET {{baseUrl}}/api/fichajes/stats/general
 Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# GESTIÓN DE SOLICITUDES DE VACACIONES (EMPLEADO)
+################################################################################
+
+### 82. Crear solicitud de vacaciones
+# @name createSolicitud
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "vacation",
+  "fecha_inicio": "2025-11-01",
+  "fecha_fin": "2025-11-05",
+  "motivo": "Vacaciones familiares planificadas con antelación"
+}
+
+### Guardar ID de la solicitud creada
+@solicitudId = {{createSolicitud.response.body.id}}
+
+### 83. Crear solicitud de baja médica
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "sick_leave",
+  "fecha_inicio": "2025-10-20",
+  "fecha_fin": "2025-10-22",
+  "motivo": "Cita médica especialista y recuperación posterior"
+}
+
+### 84. Crear solicitud de asunto personal
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "personal",
+  "fecha_inicio": "2025-10-25",
+  "fecha_fin": "2025-10-25",
+  "motivo": "Gestión de trámites bancarios y documentación legal importante"
+}
+
+### 85. Crear solicitud con motivo corto (debería fallar con 422)
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "vacation",
+  "fecha_inicio": "2025-11-10",
+  "fecha_fin": "2025-11-12",
+  "motivo": "Corto"
+}
+
+### 86. Crear solicitud con fechas inválidas (fin antes de inicio)
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "vacation",
+  "fecha_inicio": "2025-11-20",
+  "fecha_fin": "2025-11-15",
+  "motivo": "Fechas inválidas - fin antes de inicio"
+}
+
+### 87. Crear solicitud con fecha pasada (debería fallar con 400)
+POST {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "tipo": "vacation",
+  "fecha_inicio": "2025-09-01",
+  "fecha_fin": "2025-09-05",
+  "motivo": "Solicitud con fecha pasada que debería fallar"
+}
+
+### 88. Ver mis solicitudes
+GET {{baseUrl}}/api/vacaciones/me
+Authorization: Bearer {{employeeToken}}
+
+### 89. Ver mis solicitudes con paginación
+GET {{baseUrl}}/api/vacaciones/me?skip=0&limit=5
+Authorization: Bearer {{employeeToken}}
+
+### 90. Filtrar mis solicitudes por tipo (vacaciones)
+GET {{baseUrl}}/api/vacaciones/me?tipo=vacation
+Authorization: Bearer {{employeeToken}}
+
+### 91. Filtrar mis solicitudes por estado (pendientes)
+GET {{baseUrl}}/api/vacaciones/me?status=pending
+Authorization: Bearer {{employeeToken}}
+
+### 92. Filtrar mis solicitudes por estado (aprobadas)
+GET {{baseUrl}}/api/vacaciones/me?status=approved
+Authorization: Bearer {{employeeToken}}
+
+### 93. Filtrar mis solicitudes por rango de fechas
+GET {{baseUrl}}/api/vacaciones/me?start_date=2025-10-01&end_date=2025-12-31
+Authorization: Bearer {{employeeToken}}
+
+### 94. Ver una solicitud específica por ID
+GET {{baseUrl}}/api/vacaciones/{{solicitudId}}
+Authorization: Bearer {{employeeToken}}
+
+### 95. Ver solicitud inexistente (debería fallar con 404)
+GET {{baseUrl}}/api/vacaciones/99999
+Authorization: Bearer {{employeeToken}}
+
+### 96. Actualizar solicitud pendiente
+PUT {{baseUrl}}/api/vacaciones/{{solicitudId}}
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "fecha_inicio": "2025-11-02",
+  "fecha_fin": "2025-11-06",
+  "motivo": "Vacaciones actualizadas - cambio de fechas por disponibilidad familiar"
+}
+
+### 97. Intentar actualizar solicitud ya aprobada (debería fallar con 400)
+PUT {{baseUrl}}/api/vacaciones/1
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "motivo": "No se puede actualizar una solicitud aprobada"
+}
+
+### 98. Cancelar solicitud pendiente
+DELETE {{baseUrl}}/api/vacaciones/{{solicitudId}}
+Authorization: Bearer {{employeeToken}}
+
+### 99. Intentar cancelar solicitud ya aprobada (debería fallar con 400)
+DELETE {{baseUrl}}/api/vacaciones/1
+Authorization: Bearer {{employeeToken}}
+
+### 100. Ver mi balance de vacaciones
+GET {{baseUrl}}/api/vacaciones/me/balance
+Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# GESTIÓN DE SOLICITUDES DE VACACIONES (HR)
+################################################################################
+
+### 101. Ver todas las solicitudes (como HR)
+GET {{baseUrl}}/api/vacaciones/
+Authorization: Bearer {{hrToken}}
+
+### 102. Ver todas las solicitudes con paginación
+GET {{baseUrl}}/api/vacaciones/?skip=0&limit=10
+Authorization: Bearer {{hrToken}}
+
+### 103. Filtrar solicitudes por usuario específico
+GET {{baseUrl}}/api/vacaciones/?user_id={{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 104. Filtrar solicitudes por tipo (vacaciones)
+GET {{baseUrl}}/api/vacaciones/?tipo=vacation
+Authorization: Bearer {{hrToken}}
+
+### 105. Filtrar solicitudes por estado (pendientes)
+GET {{baseUrl}}/api/vacaciones/?status=pending
+Authorization: Bearer {{hrToken}}
+
+### 106. Ver solo solicitudes pendientes de revisión
+GET {{baseUrl}}/api/vacaciones/pending
+Authorization: Bearer {{hrToken}}
+
+### 107. Empleado intenta ver solicitudes pendientes (debería fallar con 403)
+GET {{baseUrl}}/api/vacaciones/pending
+Authorization: Bearer {{employeeToken}}
+
+### 108. Ver solicitud de cualquier empleado (como HR)
+GET {{baseUrl}}/api/vacaciones/1
+Authorization: Bearer {{hrToken}}
+
+### 109. Aprobar solicitud
+POST {{baseUrl}}/api/vacaciones/{{solicitudId}}/review
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "comentarios_revision": "Aprobado. Disfruta tus vacaciones."
+}
+
+### 110. Rechazar solicitud
+POST {{baseUrl}}/api/vacaciones/{{solicitudId}}/review
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": false,
+  "comentarios_revision": "No se puede aprobar en este período. Ya hay 2 empleados de vacaciones."
+}
+
+### 111. Rechazar solicitud sin comentario (debería fallar con 422)
+POST {{baseUrl}}/api/vacaciones/{{solicitudId}}/review
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": false,
+  "comentarios_revision": "Corto"
+}
+
+### 112. Empleado intenta aprobar solicitud (debería fallar con 403)
+POST {{baseUrl}}/api/vacaciones/1/review
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "comentarios_revision": "No tengo permisos para aprobar"
+}
+
+### 113. Intentar revisar solicitud ya revisada (debería fallar con 400)
+POST {{baseUrl}}/api/vacaciones/1/review
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "comentarios_revision": "Esta solicitud ya fue revisada"
+}
+
+### 114. Ver balance de vacaciones de un empleado específico
+GET {{baseUrl}}/api/vacaciones/balance/{{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 115. Empleado intenta ver balance de otro empleado (debería fallar con 403)
+GET {{baseUrl}}/api/vacaciones/balance/1
+Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# SECUENCIA DE PRUEBA COMPLETA
+################################################################################
 
 ################################################################################
 # GESTIÓN DE USUARIOS (CRUD)
@@ -614,6 +857,24 @@ GET {{baseUrl}}/redoc
 # 5. Aprobar/rechazar correcciones
 # 6. Ver estadísticas generales
 
+### SECUENCIA 5: Flujo completo de Solicitudes de Vacaciones (Empleado)
+# 1. Login como empleado
+# 2. Ver mi balance de vacaciones
+# 3. Crear solicitud de vacaciones
+# 4. Ver mis solicitudes
+# 5. Actualizar solicitud pendiente
+# 6. Cancelar solicitud
+# 7. Ver mis solicitudes filtradas por estado
+
+### SECUENCIA 6: Flujo completo de Solicitudes de Vacaciones (HR)
+# 1. Login como HR
+# 2. Ver todas las solicitudes pendientes
+# 3. Ver solicitud específica
+# 4. Aprobar solicitud
+# 5. Rechazar solicitud con comentarios
+# 6. Ver balance de vacaciones de empleados
+# 7. Filtrar solicitudes por tipo y estado
+
 ################################################################################
 # NOTAS DE USO
 ################################################################################
@@ -642,3 +903,4 @@ GET {{baseUrl}}/redoc
 # {{employeeToken}} - Token JWT de usuario empleado
 # {{userId}} - ID de usuario para operaciones individuales
 # {{fichajeId}} - ID de fichaje para operaciones individuales
+# {{solicitudId}} - ID de solicitud de vacaciones para operaciones individuales
