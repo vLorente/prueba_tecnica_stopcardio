@@ -1,5 +1,108 @@
 # Changelog - Proyecto Backend HR
 
+## [3.0.0] - 2025-10-15 - Iteración 4: Testing Completo y Seed Data
+
+### Agregado ✨
+- **Suite de testing completa**: 46 tests (100% passing)
+  - `tests/test_auth.py` - 19 tests de autenticación
+  - `tests/test_users.py` - 27 tests de gestión de usuarios
+  - `tests/conftest.py` - Fixtures reutilizables
+  - `pytest.ini` - Configuración pytest-asyncio
+
+- **Seed data system**: `scripts/seed_data.py`
+  - 12 usuarios de prueba (4 HR, 6 empleados, 2 inactivos)
+  - Limpieza opcional con confirmación interactiva
+  - Output colorido con emojis
+  - Comandos: `make seed` y `make seed-no-clear`
+
+- **Testing manual**: `test_api.http`
+  - 46 requests HTTP organizadas
+  - Variables dinámicas y captura automática de tokens
+  - Compatible con REST Client de VS Code
+
+- **Documentación**:
+  - `CHEATSHEET.md` - Guía rápida
+  - `docs/Iteracion4.md` - Documentación completa
+
+### Corregido 🐛
+- **Error 422 en creación de usuarios**: Removido Union type problemático
+- **Endpoint create_user**: Ahora requiere autenticación HR obligatoria
+- **Status codes**: 401 en password incorrecta, 204 en DELETE exitoso
+- **Test delete_user**: Ya no intenta auto-eliminación
+- **Tuple unpacking**: Corregido en list_users endpoint
+- **Validación delete**: Lanza NotFoundException si usuario no existe
+
+### Modificado 🔧
+- `app/api/routers/users.py` - Simplificado create_user, fixed list_users
+- `app/services/user_service.py` - Agregada validación en delete_user
+- `Makefile` - Agregados comandos seed
+- `scripts/README.md` - Documentación seed data
+
+### Métricas 📊
+- Tests: 46/46 (100%)
+- Usuarios seed: 12
+- Requests HTTP: 46
+- Líneas documentación: 500+
+
+---
+
+## [2.1.0] - 2025-10-14 - Iteración 3: Módulo de Usuarios
+
+### Agregado ✨
+- **Modelo User**: `app/models/user.py`
+  - Roles: EMPLOYEE (default) y HR
+  - Email único indexado
+  - Timestamps automáticos
+  - Propiedades de conveniencia (is_hr, is_employee)
+
+- **Schemas Pydantic**: `app/schemas/user.py`
+  - Entrada: UserCreate, UserCreateByHR, UserUpdate, UserUpdateSelf, UserLogin, UserChangePassword
+  - Salida: UserResponse, UserListResponse
+  - Validaciones: email, password (8+ chars)
+
+- **Repository**: `app/repositories/user_repository.py`
+  - CRUD asíncrono completo
+  - Filtrado por rol y estado activo
+  - Paginación con skip/limit
+  - Validación email único
+
+- **Service**: `app/services/user_service.py`
+  - Lógica de negocio y autorización
+  - 9 operaciones: create, get, list, update, delete, authenticate, change_password
+  - Reglas RBAC: HR puede todo, EMPLOYEE limitado
+
+- **Auth Dependencies**: `app/api/dependencies/auth.py`
+  - get_current_user, get_current_active_user, require_hr
+  - Type aliases: CurrentUser, CurrentHR
+  - Validación JWT bearer tokens
+
+- **API Routers**:
+  - `app/api/routers/auth.py` - 3 endpoints: login, logout, me
+  - `app/api/routers/users.py` - 8 endpoints CRUD completos
+  - Paginación, filtros, autorización por rol
+
+### Migración 🗄️
+- `alembic/versions/..._add_user_table.py`
+  - Tabla users con índices
+  - Columnas: id, email, full_name, hashed_password, role, is_active, timestamps
+
+### Características 🚀
+- ✅ Clean Architecture (4 capas)
+- ✅ JWT authentication (Bearer tokens)
+- ✅ RBAC con EMPLOYEE/HR
+- ✅ 11 endpoints RESTful
+- ✅ 11 schemas Pydantic
+- ✅ Password hashing con bcrypt
+- ✅ Dependency injection
+- ✅ SOLID principles
+
+### Calidad 📐
+- Código pasó linting con Ruff
+- ~2500 líneas de código
+- Documentación completa en `docs/Iteracion3.md`
+
+---
+
 ## [2.0.1] - 2025-10-14
 
 ### Corregido 🐛
