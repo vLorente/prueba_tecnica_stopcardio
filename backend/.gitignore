@@ -9,9 +9,11 @@ wheels/
 # Virtual environments
 .venv
 
-# Linters and formatters
+# Linters, formatters, and test caches
 .ruff_cache/
 .pytest_cache/
+.coverage
+htmlcov/
 
 # Database
 *.db

@@ -45,10 +45,18 @@ format-check: ## Verificar formato sin modificar
 	@echo "✨ Verificando formato..."
 	$(BLACK) . --check
 
-migration: ## Crear nueva migración
-	@read -p "Nombre de la migración: " name; \
-	echo "📝 Creando migración: $$name"; \
-	$(ALEMBIC) revision --autogenerate -m "$$name"
+migration: ## Crear nueva migración (usar: make migration MESSAGE="nombre" o make migration -m "nombre")
+	@if [ -n "$(MESSAGE)" ]; then \
+		echo "📝 Creando migración: $(MESSAGE)"; \
+		$(ALEMBIC) revision --autogenerate -m "$(MESSAGE)"; \
+	elif [ -n "$(m)" ]; then \
+		echo "📝 Creando migración: $(m)"; \
+		$(ALEMBIC) revision --autogenerate -m "$(m)"; \
+	else \
+		read -p "Nombre de la migración: " name; \
+		echo "📝 Creando migración: $$name"; \
+		$(ALEMBIC) revision --autogenerate -m "$$name"; \
+	fi
 
 migrate: ## Aplicar migraciones
 	@echo "⬆️  Aplicando migraciones..."

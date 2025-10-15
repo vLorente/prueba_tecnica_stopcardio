@@ -39,3 +39,11 @@ class NotFoundException(AppException):
 
 class ConflictException(AppException):
     """Excepción para conflictos (ej: email duplicado)."""
+
+
+class BadRequestException(AppException):
+    """Excepción para peticiones mal formadas o inválidas."""
+
+
+class ForbiddenException(AppException):
+    """Excepción para acceso prohibido (sin permisos)."""

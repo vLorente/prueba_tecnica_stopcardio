@@ -1,5 +1,121 @@
 # Changelog - Proyecto Backend HR
 
+## [4.0.0] - 2025-10-15 - Iteración 5: Módulo de Fichajes Completo
+
+### Agregado ✨
+- **Módulo de Fichajes** - Sistema completo de gestión de entradas/salidas
+  - `app/models/fichaje.py` - Modelo Fichaje con 4 estados y propiedades calculadas
+  - `app/schemas/fichaje.py` - 6 schemas (FichajeCheckIn, FichajeCheckOut, FichajeCorrection, FichajeApproval, FichajeFilters, FichajeResponse, FichajeListResponse, FichajeStats)
+  - `app/repositories/fichaje_repository.py` - 10 métodos de acceso a datos
+  - `app/services/fichaje_service.py` - 11 operaciones con 10 reglas de negocio
+  - `app/api/routers/fichajes.py` - 11 endpoints RESTful
+
+- **Enum FichajeStatus**: Estados de fichaje
+  - `VALID` - Fichaje válido
+  - `PENDING_CORRECTION` - Corrección pendiente de aprobación
+  - `CORRECTED` - Corregido y aprobado por HR
+  - `REJECTED` - Corrección rechazada por HR
+
+- **11 Endpoints de Fichajes**:
+  - `POST /api/fichajes/check-in` - Registrar entrada (CurrentUser)
+  - `POST /api/fichajes/check-out` - Registrar salida (CurrentUser)
+  - `GET /api/fichajes/me` - Mis fichajes con filtros (CurrentUser)
+  - `GET /api/fichajes/` - Todos los fichajes (CurrentHR)
+  - `GET /api/fichajes/{id}` - Fichaje por ID (CurrentUser/CurrentHR)
+  - `GET /api/fichajes/active` - Mi fichaje activo (CurrentUser)
+  - `POST /api/fichajes/{id}/request-correction` - Solicitar corrección (CurrentUser)
+  - `POST /api/fichajes/{id}/approve` - Aprobar/rechazar corrección (CurrentHR)
+  - `GET /api/fichajes/stats/me` - Mis estadísticas (CurrentUser)
+  - `GET /api/fichajes/stats/user/{user_id}` - Stats de empleado (CurrentHR)
+  - `GET /api/fichajes/stats/general` - Stats generales (CurrentHR)
+
+- **Tests Completos**: `tests/test_fichajes.py`
+  - 24 tests organizados en 8 clases (100% passing)
+  - TestCheckIn, TestCheckOut, TestListFichajes, TestRequestCorrection
+  - TestApproveCorrection, TestGetFichaje, TestActiveFichaje, TestFichajeStats
+  - Homogeneizados con test_users.py (class-based organization)
+
+- **Seed Data**: 12 fichajes de ejemplo
+  - 9 fichajes completos (semana laboral 3 empleados)
+  - 1 fichaje activo (solo entrada)
+  - 1 fichaje pendiente de corrección
+  - 1 fichaje rechazado con motivo
+
+- **Documentación de API**: `test_api.http`
+  - +35 requests HTTP (total 81 requests)
+  - Sección Gestión de Fichajes (19 requests)
+  - Sección Correcciones (4 requests)
+  - Sección Aprobación/Rechazo (4 requests)
+  - Sección Estadísticas (8 requests)
+  - 2 nuevas secuencias de prueba completas
+
+### Reglas de Negocio Implementadas 📏
+- **RN-F01**: Usuario debe estar activo para fichar
+- **RN-F02**: No puede haber fichaje activo para check-in
+- **RN-F03**: Debe existir fichaje activo para check-out
+- **RN-F04**: Timestamps con timezone UTC (aware)
+- **RN-F05**: check_out debe ser posterior a check_in
+- **RN-F06**: Solo el empleado puede corregir sus fichajes
+- **RN-F07**: Motivo de corrección mínimo 10 caracteres
+- **RN-F08**: Solo HR puede aprobar/rechazar correcciones
+- **RN-F09**: Solo fichajes PENDING_CORRECTION son aprobables
+- **RN-F10**: Estado CORRECTED al aprobar, REJECTED al rechazar
+
+### Corregido 🐛
+- **Organización de tests**: Refactorizado test_fichajes.py de funciones a clases
+- **Autorización endpoint**: Changed GET /api/fichajes/ from CurrentUser to CurrentHR
+- **Exception handling**: get_my_active_fichaje ahora lanza NotFoundException (404) en vez de retornar None
+- **Type conversions**: Agregados helpers _date_to_datetime() y _date_to_datetime_end() para filtros de fecha
+- **Schema validation**: Corregidos nombres de campos en tests (check_in, check_out, correction_reason)
+- **Import cleanup**: Removidos imports duplicados en fichajes.py router
+
+### Modificado 🔧
+- `app/models/user.py` - Agregado relationship con fichajes
+- `app/main.py` - Agregado router de fichajes
+- `scripts/seed_data.py` - Función create_fichajes() con 12 fichajes de ejemplo
+- `test_api.http` - +245 líneas con requests de fichajes
+
+### Migración 🗄️
+- `alembic/versions/34c25f9618d2_add_fichaje_table.py`
+  - Tabla fichaje con foreign keys a user
+  - Índices en user_id, check_in, check_out
+  - Soporte para correcciones y aprobaciones
+  - Campos de auditoría completos
+
+### Características 🚀
+- ✅ Clean Architecture (4 capas bien separadas)
+- ✅ SOLID Principles aplicados
+- ✅ 10 reglas de negocio implementadas y testeadas
+- ✅ Cálculo automático de horas trabajadas
+- ✅ Timezone-aware datetimes (UTC)
+- ✅ Filtros avanzados (fecha, estado, usuario)
+- ✅ Estadísticas con agregaciones SQL
+- ✅ Autorización granular (EMPLOYEE vs HR)
+- ✅ Dependency Injection (CurrentUser, CurrentHR)
+- ✅ FastAPI status constants (no magic numbers)
+
+### Métricas 📊
+- **Tests**: 70/70 (100%)
+  - Fichajes: 24/24
+  - Autenticación: 13/13
+  - Usuarios: 33/33
+- **Endpoints**: 11 nuevos
+- **Schemas**: 6 nuevos
+- **Reglas de negocio**: 10/10 implementadas
+- **Seed data**: +12 fichajes
+- **HTTP requests**: +35 (total 81)
+- **Líneas de código**: ~1800 nuevas
+- **Documentación**: `docs/Iteracion5-COMPLETADA.md` (500+ líneas)
+
+### Calidad 📐
+- Código pasó linting (Ruff, Pylint)
+- Sin warnings críticos
+- Type hints completos
+- Documentación exhaustiva
+- Swagger UI actualizado
+
+---
+
 ## [3.0.0] - 2025-10-15 - Iteración 4: Testing Completo y Seed Data
 
 ### Agregado ✨

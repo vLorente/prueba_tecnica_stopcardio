@@ -6,11 +6,14 @@ Incluye roles para control de acceso.
 """
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import String
-from sqlmodel import Column, Field
+from sqlmodel import Field, Relationship
 
 from app.models.base import BaseModel
+
+if TYPE_CHECKING:
+    from app.models.fichaje import Fichaje
 
 
 class UserRole(str, Enum):
@@ -34,23 +37,26 @@ class User(BaseModel, table=True):
 
     # Información básica
     email: str = Field(
-        sa_column=Column(String(255), unique=True, index=True, nullable=False),
+        unique=True,
+        index=True,
         description="Email del usuario (usado para login)",
     )
-    full_name: str = Field(
-        sa_column=Column(String(255), nullable=False), description="Nombre completo del usuario"
-    )
+    full_name: str = Field(description="Nombre completo del usuario")
 
     # Autenticación
-    hashed_password: str = Field(
-        sa_column=Column(String(255), nullable=False), description="Contraseña hasheada con bcrypt"
-    )
+    hashed_password: str = Field(description="Contraseña hasheada con bcrypt")
 
     # Role y permisos
     role: UserRole = Field(default=UserRole.EMPLOYEE, description="Rol del usuario en el sistema")
 
     # Estado
     is_active: bool = Field(default=True, description="Si el usuario está activo en el sistema")
+
+    # Relaciones
+    fichajes: list["Fichaje"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"foreign_keys": "Fichaje.user_id"},
+    )
 
     def __repr__(self) -> str:
         """Representación en string del usuario."""

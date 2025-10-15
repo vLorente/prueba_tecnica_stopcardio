@@ -11,6 +11,7 @@
 @employeeToken = tu_token_de_empleado_aqui
 @hrToken = tu_token_de_hr_aqui
 @userId = 1
+@fichajeId = 1
 
 ################################################################################
 # AUTENTICACIÓN
@@ -61,6 +62,230 @@ Authorization: Bearer {{employeeToken}}
 
 ### 6. Logout
 POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# GESTIÓN DE FICHAJES
+################################################################################
+
+### 47. Check-in (registrar entrada) como empleado
+# @name checkIn
+POST {{baseUrl}}/api/fichajes/check-in
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{}
+
+### Guardar ID del fichaje creado
+@fichajeId = {{checkIn.response.body.id}}
+
+### 48. Intentar hacer check-in con fichaje activo (debería fallar con 400)
+POST {{baseUrl}}/api/fichajes/check-in
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{}
+
+### 49. Check-out (registrar salida) del fichaje activo
+POST {{baseUrl}}/api/fichajes/check-out
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{}
+
+### 50. Intentar check-out sin fichaje activo (debería fallar con 400)
+POST {{baseUrl}}/api/fichajes/check-out
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{}
+
+### 51. Ver mis fichajes (como empleado)
+GET {{baseUrl}}/api/fichajes/me
+Authorization: Bearer {{employeeToken}}
+
+### 52. Ver mis fichajes con paginación
+GET {{baseUrl}}/api/fichajes/me?skip=0&limit=5
+Authorization: Bearer {{employeeToken}}
+
+### 53. Filtrar mis fichajes por fecha de inicio
+GET {{baseUrl}}/api/fichajes/me?start_date=2025-10-01
+Authorization: Bearer {{employeeToken}}
+
+### 54. Filtrar mis fichajes por rango de fechas
+GET {{baseUrl}}/api/fichajes/me?start_date=2025-10-01&end_date=2025-10-15
+Authorization: Bearer {{employeeToken}}
+
+### 55. Filtrar mis fichajes por estado (válidos)
+GET {{baseUrl}}/api/fichajes/me?status=valid
+Authorization: Bearer {{employeeToken}}
+
+### 56. Filtrar mis fichajes por estado (pendientes de corrección)
+GET {{baseUrl}}/api/fichajes/me?status=pending_correction
+Authorization: Bearer {{employeeToken}}
+
+### 57. Ver todos los fichajes de todos los usuarios (como HR)
+GET {{baseUrl}}/api/fichajes/
+Authorization: Bearer {{hrToken}}
+
+### 58. Intentar ver todos los fichajes como empleado (debería fallar con 403)
+GET {{baseUrl}}/api/fichajes/
+Authorization: Bearer {{employeeToken}}
+
+### 59. Filtrar fichajes por usuario específico (como HR)
+GET {{baseUrl}}/api/fichajes/?user_id={{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 60. Ver un fichaje por ID
+GET {{baseUrl}}/api/fichajes/{{fichajeId}}
+Authorization: Bearer {{employeeToken}}
+
+### 61. Ver fichaje de otro usuario como empleado (debería fallar con 403)
+GET {{baseUrl}}/api/fichajes/1
+Authorization: Bearer {{employeeToken}}
+
+### 62. Ver fichaje de cualquier usuario como HR
+GET {{baseUrl}}/api/fichajes/1
+Authorization: Bearer {{hrToken}}
+
+### 63. Ver fichaje inexistente (debería fallar con 404)
+GET {{baseUrl}}/api/fichajes/99999
+Authorization: Bearer {{hrToken}}
+
+### 64. Ver mi fichaje activo (sin salida)
+GET {{baseUrl}}/api/fichajes/active
+Authorization: Bearer {{employeeToken}}
+
+### 65. Ver mi fichaje activo cuando no hay ninguno (debería fallar con 404)
+GET {{baseUrl}}/api/fichajes/active
+Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# CORRECCIONES DE FICHAJES
+################################################################################
+
+### 66. Solicitar corrección de fichaje
+POST {{baseUrl}}/api/fichajes/{{fichajeId}}/request-correction
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "check_in": "2025-10-15T08:30:00",
+  "check_out": "2025-10-15T17:30:00",
+  "correction_reason": "Olvidé fichar a tiempo, estas son las horas correctas"
+}
+
+### 67. Solicitar corrección sin motivo (debería fallar con 422)
+POST {{baseUrl}}/api/fichajes/{{fichajeId}}/request-correction
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "check_in": "2025-10-15T08:30:00",
+  "check_out": "2025-10-15T17:30:00",
+  "correction_reason": "Corto"
+}
+
+### 68. Solicitar corrección de fichaje de otro usuario (debería fallar con 403)
+POST {{baseUrl}}/api/fichajes/1/request-correction
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "check_in": "2025-10-15T08:30:00",
+  "check_out": "2025-10-15T17:30:00",
+  "correction_reason": "Este no es mi fichaje, debería fallar"
+}
+
+### 69. Solicitar corrección con check_out anterior a check_in (debería fallar con 400)
+POST {{baseUrl}}/api/fichajes/{{fichajeId}}/request-correction
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "check_in": "2025-10-15T18:00:00",
+  "check_out": "2025-10-15T09:00:00",
+  "correction_reason": "Horarios inválidos - salida antes de entrada"
+}
+
+################################################################################
+# APROBACIÓN/RECHAZO DE CORRECCIONES (HR)
+################################################################################
+
+### 70. Aprobar corrección de fichaje (como HR)
+POST {{baseUrl}}/api/fichajes/{{fichajeId}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "approval_notes": "Corrección aprobada - documentación verificada"
+}
+
+### 71. Rechazar corrección de fichaje (como HR)
+POST {{baseUrl}}/api/fichajes/{{fichajeId}}/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": false,
+  "approval_notes": "Necesitas presentar justificante médico o documentación adicional"
+}
+
+### 72. Empleado intenta aprobar corrección (debería fallar con 403)
+POST {{baseUrl}}/api/fichajes/1/approve
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "approval_notes": "No tengo permisos"
+}
+
+### 73. Aprobar fichaje que no está pendiente (debería fallar con 400)
+POST {{baseUrl}}/api/fichajes/1/approve
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "approved": true,
+  "approval_notes": "Este fichaje no está pendiente"
+}
+
+################################################################################
+# ESTADÍSTICAS DE FICHAJES
+################################################################################
+
+### 74. Ver mis estadísticas de fichajes
+GET {{baseUrl}}/api/fichajes/stats/me
+Authorization: Bearer {{employeeToken}}
+
+### 75. Ver mis estadísticas con filtro de fechas
+GET {{baseUrl}}/api/fichajes/stats/me?start_date=2025-10-01&end_date=2025-10-15
+Authorization: Bearer {{employeeToken}}
+
+### 76. HR ve estadísticas de un empleado específico
+GET {{baseUrl}}/api/fichajes/stats/user/{{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 77. HR ve estadísticas de empleado con filtro de fechas
+GET {{baseUrl}}/api/fichajes/stats/user/{{userId}}?start_date=2025-10-01&end_date=2025-10-15
+Authorization: Bearer {{hrToken}}
+
+### 78. Empleado intenta ver estadísticas de otro usuario (debería fallar con 403)
+GET {{baseUrl}}/api/fichajes/stats/user/1
+Authorization: Bearer {{employeeToken}}
+
+### 79. Ver estadísticas generales de todos los empleados (como HR)
+GET {{baseUrl}}/api/fichajes/stats/general
+Authorization: Bearer {{hrToken}}
+
+### 80. Ver estadísticas generales con filtro de fechas
+GET {{baseUrl}}/api/fichajes/stats/general?start_date=2025-10-01&end_date=2025-10-15
+Authorization: Bearer {{hrToken}}
+
+### 81. Empleado intenta ver estadísticas generales (debería fallar con 403)
+GET {{baseUrl}}/api/fichajes/stats/general
 Authorization: Bearer {{employeeToken}}
 
 ################################################################################
@@ -372,6 +597,23 @@ GET {{baseUrl}}/redoc
 # 5. Intentar ver otros usuarios (debe fallar)
 # 6. Intentar crear usuarios (debe fallar)
 
+### SECUENCIA 3: Flujo completo de Fichajes (Empleado)
+# 1. Login como empleado
+# 2. Check-in (registrar entrada)
+# 3. Ver mis fichajes
+# 4. Ver mi fichaje activo
+# 5. Check-out (registrar salida)
+# 6. Solicitar corrección de un fichaje
+# 7. Ver mis estadísticas
+
+### SECUENCIA 4: Flujo completo de Fichajes (HR)
+# 1. Login como HR
+# 2. Ver todos los fichajes
+# 3. Filtrar fichajes por usuario
+# 4. Ver fichajes pendientes de corrección
+# 5. Aprobar/rechazar correcciones
+# 6. Ver estadísticas generales
+
 ################################################################################
 # NOTAS DE USO
 ################################################################################
@@ -381,7 +623,7 @@ GET {{baseUrl}}/redoc
 # 2. Inicia el servidor: make dev (o uv run uvicorn app.main:app --reload)
 # 3. Ejecuta las requests haciendo clic en "Send Request" sobre cada ###
 # 4. Los tokens se pueden guardar automáticamente usando @name y capturando la respuesta
-# 5. Actualiza las variables @baseUrl, @userId según tu entorno
+# 5. Actualiza las variables @baseUrl, @userId, @fichajeId según tu entorno
 
 # Códigos de estado esperados:
 # 200 OK - Operación exitosa (GET, PUT, PATCH, POST)
@@ -399,3 +641,4 @@ GET {{baseUrl}}/redoc
 # {{hrToken}} - Token JWT de usuario HR
 # {{employeeToken}} - Token JWT de usuario empleado
 # {{userId}} - ID de usuario para operaciones individuales
+# {{fichajeId}} - ID de fichaje para operaciones individuales

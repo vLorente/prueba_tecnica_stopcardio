@@ -16,10 +16,13 @@ from pathlib import Path
 # Agregar el directorio raíz al path para importar módulos de la app
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from datetime import UTC, datetime, timedelta
+
 from sqlmodel import select
 
 from app.core.security import get_password_hash
 from app.database import AsyncSessionLocal, init_db
+from app.models.fichaje import Fichaje, FichajeStatus
 from app.models.user import User, UserRole
 
 
@@ -32,6 +35,12 @@ async def clear_database(session) -> None:
     """
     print("🗑️  Limpiando base de datos...")
 
+    # Eliminar todos los fichajes
+    result = await session.execute(select(Fichaje))
+    fichajes = result.scalars().all()
+    for fichaje in fichajes:
+        await session.delete(fichaje)
+
     # Eliminar todos los usuarios
     result = await session.execute(select(User))
     users = result.scalars().all()
@@ -40,7 +49,7 @@ async def clear_database(session) -> None:
         await session.delete(user)
 
     await session.commit()
-    print(f"   ✓ Eliminados {len(users)} usuarios existentes")
+    print(f"   ✓ Eliminados {len(fichajes)} fichajes y {len(users)} usuarios existentes")
 
 
 async def create_users(session) -> dict[str, User]:
@@ -164,6 +173,127 @@ async def create_users(session) -> dict[str, User]:
     return created_users
 
 
+async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
+    """
+    Crea fichajes de ejemplo para los empleados.
+
+    Args:
+        session: Sesión de base de datos
+        users: Diccionario de usuarios creados
+
+    Returns:
+        list: Lista de fichajes creados
+    """
+    print("\n⏰ Creando fichajes de ejemplo...")
+
+    # Obtener empleados (no HR)
+    employees = [
+        user for user in users.values() if user.role == UserRole.EMPLOYEE and user.is_active
+    ]
+
+    if not employees:
+        print("   ⚠️  No hay empleados activos para crear fichajes")
+        return []
+
+    created_fichajes = []
+    now = datetime.now(tz=UTC)
+
+    # Crear fichajes de la semana actual para cada empleado
+    for employee in employees[:3]:  # Solo para los primeros 3 empleados
+        print(f"\n   📋 Fichajes para {employee.full_name}:")
+
+        # Lunes a Viernes de esta semana
+        for days_ago in range(4, -1, -1):  # 4 días atrás hasta hoy
+            date = now - timedelta(days=days_ago)
+
+            # Solo días laborables (lunes a viernes)
+            if date.weekday() < 5:  # noqa: PLR2004 0=Lunes, 4=Viernes
+                # Fichaje completo (entrada y salida)
+                check_in_time = date.replace(hour=9, minute=0, second=0, microsecond=0)
+                check_out_time = date.replace(hour=18, minute=0, second=0, microsecond=0)
+
+                fichaje = Fichaje(
+                    user_id=employee.id,  # type: ignore
+                    check_in=check_in_time,
+                    check_out=check_out_time,
+                    status=FichajeStatus.VALID,
+                )
+                session.add(fichaje)
+                created_fichajes.append(fichaje)
+
+                day_name = ["Lun", "Mar", "Mié", "Jue", "Vie"][date.weekday()]
+                print(f"      ✓ {day_name} {date.strftime('%d/%m')}: 09:00 - 18:00 (Válido)")
+
+    # Crear un fichaje activo (solo entrada) para el primer empleado
+    if employees:
+        employee = employees[0]
+        active_check_in = now.replace(hour=9, minute=0, second=0, microsecond=0)
+
+        active_fichaje = Fichaje(
+            user_id=employee.id,  # type: ignore
+            check_in=active_check_in,
+            status=FichajeStatus.VALID,
+        )
+        session.add(active_fichaje)
+        created_fichajes.append(active_fichaje)
+
+        print(f"\n   🟢 Fichaje activo para {employee.full_name}:")
+        print(f"      ⏱️  Entrada: {active_check_in.strftime('%H:%M')} (sin salida)")
+
+    # Crear un fichaje pendiente de corrección para el segundo empleado
+    if len(employees) > 1:
+        employee = employees[1]
+        pending_date = now - timedelta(days=2)
+        wrong_check_in = pending_date.replace(hour=10, minute=30, second=0, microsecond=0)
+        wrong_check_out = pending_date.replace(hour=17, minute=0, second=0, microsecond=0)
+
+        pending_fichaje = Fichaje(
+            user_id=employee.id,  # type: ignore
+            check_in=wrong_check_in,
+            check_out=wrong_check_out,
+            status=FichajeStatus.PENDING_CORRECTION,
+            correction_reason="Olvidé fichar a tiempo, llegué a las 9:00",
+            correction_requested_at=now - timedelta(hours=2),
+        )
+        session.add(pending_fichaje)
+        created_fichajes.append(pending_fichaje)
+
+        print(f"\n   ⏳ Fichaje pendiente para {employee.full_name}:")
+        print(
+            f"      ⚠️  {pending_date.strftime('%d/%m')}: 10:30 - 17:00 → Solicitud: 09:00 - 18:00"
+        )
+
+    # Crear un fichaje rechazado para el tercer empleado
+    if len(employees) > 2:  # noqa: PLR2004
+        employee = employees[2]
+        rejected_date = now - timedelta(days=3)
+        rejected_check_in = rejected_date.replace(hour=11, minute=0, second=0, microsecond=0)
+        rejected_check_out = rejected_date.replace(hour=16, minute=0, second=0, microsecond=0)
+
+        rejected_fichaje = Fichaje(
+            user_id=employee.id,  # type: ignore
+            check_in=rejected_check_in,
+            check_out=rejected_check_out,
+            status=FichajeStatus.REJECTED,
+            correction_reason="Tuve una cita médica",
+            correction_requested_at=now - timedelta(days=2),
+            approval_notes="Necesitas presentar justificante médico",
+            approved_at=now - timedelta(days=1),
+        )
+        session.add(rejected_fichaje)
+        created_fichajes.append(rejected_fichaje)
+
+        print(f"\n   ❌ Fichaje rechazado para {employee.full_name}:")
+        print(
+            f"      🚫 {rejected_date.strftime('%d/%m')}: Solicitud rechazada - Falta justificante"
+        )
+
+    await session.commit()
+
+    print(f"\n   ✓ Creados {len(created_fichajes)} fichajes de ejemplo")
+    return created_fichajes
+
+
 async def seed_database(clear: bool = True) -> None:
     """
     Ejecuta el proceso completo de seed.
@@ -185,7 +315,10 @@ async def seed_database(clear: bool = True) -> None:
                 await clear_database(session)
 
             # Crear datos de prueba
-            await create_users(session)
+            users = await create_users(session)
+
+            # Crear fichajes de ejemplo
+            await create_fichajes(session, users)
 
             print("\n" + "=" * 80)
             print("✅ Seed completado exitosamente!")
@@ -217,6 +350,11 @@ async def seed_database(clear: bool = True) -> None:
             print("   - Los usuarios HR pueden gestionar todos los recursos")
             print("   - Los empleados solo pueden ver/editar sus propios datos")
             print("   - Los usuarios inactivos no pueden hacer login")
+            print("\n💾 FICHAJES DE EJEMPLO:")
+            print("   - Fichajes completos de la semana para 3 empleados")
+            print("   - 1 fichaje activo (solo entrada, sin salida)")
+            print("   - 1 fichaje pendiente de corrección (esperando aprobación HR)")
+            print("   - 1 fichaje rechazado (con motivo de rechazo)")
             print("=" * 80)
 
         except Exception as e:

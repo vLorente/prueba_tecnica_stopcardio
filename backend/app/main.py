@@ -6,12 +6,22 @@ Backend desarrollado con FastAPI, SQLModel y arquitectura limpia.
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.routers import auth_router, users_router
+from app.api.routers.fichajes import router as fichajes_router
 from app.core.config import settings
-from app.database import init_db
+from app.core.exceptions import (
+    AuthenticationException,
+    AuthorizationException,
+    BadRequestException,
+    ConflictException,
+    ForbiddenException,
+    NotFoundException,
+    ValidationException,
+)
 
 
 @asynccontextmanager
@@ -22,14 +32,20 @@ async def lifespan(_app: FastAPI):
     Inicializa la base de datos al inicio y limpia recursos al finalizar.
     """
     # Startup
-    if settings.is_development:
-        # En desarrollo, crear tablas automáticamente
-        await init_db()
+    # NOTA: Las tablas se crean mediante migraciones de Alembic
+    # No usar init_db() automáticamente para evitar inconsistencias
+    # Ejecutar manualmente: make migrate
+
+    # if settings.is_development:
+    #     # DESHABILITADO: Usar migraciones de Alembic en su lugar
+    #     await init_db()
 
     yield
 
     # Shutdown
     # Aquí se pueden agregar tareas de limpieza
+
+
 # Crear instancia de FastAPI
 app = FastAPI(
     title=settings.app_name,
@@ -38,6 +54,71 @@ app = FastAPI(
     lifespan=lifespan,
     debug=settings.debug,
 )
+
+
+# Configurar exception handlers
+@app.exception_handler(BadRequestException)
+async def bad_request_exception_handler(request: Request, exc: BadRequestException):
+    """Handler para BadRequestException."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(NotFoundException)
+async def not_found_exception_handler(request: Request, exc: NotFoundException):
+    """Handler para NotFoundException."""
+    return JSONResponse(
+        status_code=404,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(ForbiddenException)
+async def forbidden_exception_handler(request: Request, exc: ForbiddenException):
+    """Handler para ForbiddenException."""
+    return JSONResponse(
+        status_code=403,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(ConflictException)
+async def conflict_exception_handler(request: Request, exc: ConflictException):
+    """Handler para ConflictException."""
+    return JSONResponse(
+        status_code=409,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(AuthenticationException)
+async def authentication_exception_handler(request: Request, exc: AuthenticationException):
+    """Handler para AuthenticationException."""
+    return JSONResponse(
+        status_code=401,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(AuthorizationException)
+async def authorization_exception_handler(request: Request, exc: AuthorizationException):
+    """Handler para AuthorizationException."""
+    return JSONResponse(
+        status_code=403,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
+
+@app.exception_handler(ValidationException)
+async def validation_exception_handler(request: Request, exc: ValidationException):
+    """Handler para ValidationException."""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.message, "error_details": exc.details},
+    )
+
 
 # Configurar CORS
 app.add_middleware(
@@ -51,6 +132,7 @@ app.add_middleware(
 # Registrar routers
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users_router, prefix="/api/users", tags=["Users"])
+app.include_router(fichajes_router, prefix="/api/fichajes", tags=["Fichajes"])
 
 
 # Health check endpoint
