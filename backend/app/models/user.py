@@ -14,6 +14,7 @@ from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.fichaje import Fichaje
+    from app.models.solicitud import Solicitud
 
 
 class UserRole(str, Enum):
@@ -52,10 +53,22 @@ class User(BaseModel, table=True):
     # Estado
     is_active: bool = Field(default=True, description="Si el usuario está activo en el sistema")
 
+    # Balance de vacaciones
+    dias_vacaciones_anuales: int = Field(
+        default=22, nullable=False, description="Días de vacaciones asignados por año"
+    )
+    dias_vacaciones_disponibles: float = Field(
+        default=22.0, nullable=False, description="Balance actual de días de vacaciones disponibles"
+    )
+
     # Relaciones
     fichajes: list["Fichaje"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "Fichaje.user_id"},
+    )
+    solicitudes: list["Solicitud"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"foreign_keys": "Solicitud.user_id"},
     )
 
     def __repr__(self) -> str:

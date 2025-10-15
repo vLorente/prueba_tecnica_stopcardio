@@ -9,7 +9,11 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
-from app.api.dependencies.auth import get_current_active_user
+from app.api.dependencies.auth import (
+    get_current_active_user,
+    get_current_hr,
+    get_current_user,
+)
 from app.core.security import create_access_token, get_password_hash
 from app.database import get_session
 from app.main import app
@@ -146,6 +150,7 @@ async def authenticated_client(client: AsyncClient, employee_user: User) -> Asyn
         return employee_user
 
     app.dependency_overrides[get_current_active_user] = override_get_current_user
+    app.dependency_overrides[get_current_user] = override_get_current_user
     return client
 
 
@@ -157,4 +162,6 @@ async def hr_authenticated_client(client: AsyncClient, hr_user: User) -> AsyncCl
         return hr_user
 
     app.dependency_overrides[get_current_active_user] = override_get_current_user
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_hr] = override_get_current_user
     return client

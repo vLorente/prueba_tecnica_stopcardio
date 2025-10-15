@@ -162,3 +162,6 @@ async def require_hr(current_user: Annotated[User, Depends(get_current_active_us
 # Type hints para dependency injection
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 CurrentHR = Annotated[User, Depends(require_hr)]
+
+# Alias para mantener consistencia con nomenclatura
+get_current_hr = require_hr

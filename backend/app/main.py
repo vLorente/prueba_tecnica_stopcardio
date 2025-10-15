@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.routers import auth_router, users_router
 from app.api.routers.fichajes import router as fichajes_router
+from app.api.routers.vacaciones import router as vacaciones_router
 from app.core.config import settings
 from app.core.exceptions import (
     AuthenticationException,
@@ -133,6 +134,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users_router, prefix="/api/users", tags=["Users"])
 app.include_router(fichajes_router, prefix="/api/fichajes", tags=["Fichajes"])
+app.include_router(vacaciones_router, prefix="/api", tags=["Vacaciones"])
 
 
 # Health check endpoint

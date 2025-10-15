@@ -1,6 +1,138 @@
 # Changelog - Proyecto Backend HR
 
-## [4.0.0] - 2025-10-15 - Iteración 5: Módulo de Fichajes Completo
+## [1.0.6] - 2025-10-15 - Iteración 6: Módulo de Vacaciones y Solicitudes Completo
+
+### Agregado ✨
+- **Módulo de Solicitudes** - Sistema completo de gestión de vacaciones y ausencias
+  - `app/models/solicitud.py` - Modelo Solicitud con 4 tipos y 4 estados
+  - `app/schemas/solicitud.py` - 6 schemas (SolicitudCreate, SolicitudUpdate, SolicitudReview, SolicitudFilters, SolicitudResponse, SolicitudListResponse, VacationBalanceResponse)
+  - `app/repositories/solicitud_repository.py` - 12 métodos de acceso a datos
+  - `app/services/solicitud_service.py` - 10 operaciones con 15+ reglas de negocio
+  - `app/api/routers/vacaciones.py` - 10 endpoints RESTful
+
+- **Enum SolicitudTipo**: Tipos de solicitud
+  - `vacation` - Vacaciones
+  - `sick_leave` - Baja médica
+  - `personal` - Asuntos personales
+  - `other` - Otros
+
+- **Enum SolicitudStatus**: Estados de solicitud
+  - `pending` - Pendiente de revisión
+  - `approved` - Aprobada por HR
+  - `rejected` - Rechazada por HR
+  - `cancelled` - Cancelada por el empleado
+
+- **10 Endpoints de Vacaciones**:
+  - `POST /api/vacaciones/` - Crear solicitud (CurrentUser)
+  - `GET /api/vacaciones/me` - Mis solicitudes con filtros (CurrentUser)
+  - `GET /api/vacaciones/{id}` - Solicitud por ID (CurrentUser/CurrentHR)
+  - `PUT /api/vacaciones/{id}` - Actualizar solicitud pendiente (CurrentUser)
+  - `DELETE /api/vacaciones/{id}` - Cancelar solicitud (CurrentUser)
+  - `POST /api/vacaciones/{id}/review` - Aprobar/rechazar (CurrentHR)
+  - `GET /api/vacaciones/me/balance` - Mi balance de vacaciones (CurrentUser)
+  - `GET /api/vacaciones/pending` - Solicitudes pendientes (CurrentHR)
+  - `GET /api/vacaciones/` - Todas las solicitudes con filtros (CurrentHR)
+  - `GET /api/vacaciones/balance/{user_id}` - Balance de empleado (CurrentHR)
+
+- **Tests Completos**: `tests/test_solicitudes.py`
+  - 39 tests organizados en 8 clases (100% passing)
+  - TestCreateSolicitud (9 tests)
+  - TestListSolicitudes (5 tests)
+  - TestGetSolicitud (4 tests)
+  - TestUpdateSolicitud (5 tests)
+  - TestCancelSolicitud (3 tests)
+  - TestReviewSolicitud (4 tests)
+  - TestVacationBalance (5 tests)
+  - TestHRListSolicitudes (4 tests)
+
+- **Seed Data**: 15 solicitudes de ejemplo
+  - 5 aprobadas (3 vacation, 1 sick_leave, 1 personal)
+  - 4 pendientes (diferentes tipos)
+  - 3 rechazadas con comentarios
+  - 2 canceladas
+  - 1 con fechas futuras
+
+### Reglas de Negocio Implementadas 📏
+- **RN-S01**: Usuario debe estar activo para crear solicitudes
+- **RN-S02**: Fecha inicio debe ser >= fecha actual
+- **RN-S03**: Fecha fin debe ser >= fecha inicio
+- **RN-S04**: Motivo mínimo 10 caracteres
+- **RN-S05**: No puede haber solapamiento de fechas aprobadas
+- **RN-S06**: Balance de vacaciones suficiente para tipo vacation
+- **RN-S07**: Solo el empleado puede actualizar sus solicitudes pendientes
+- **RN-S08**: Solo solicitudes PENDING pueden actualizarse
+- **RN-S09**: Solo el empleado puede cancelar sus solicitudes
+- **RN-S10**: Solo solicitudes no finalizadas pueden cancelarse
+- **RN-S11**: Solo HR puede revisar solicitudes
+- **RN-S12**: Solo solicitudes PENDING pueden revisarse
+- **RN-S13**: Comentario de revisión mínimo 10 caracteres al rechazar
+- **RN-S14**: Balance se calcula con días naturales (no laborables)
+- **RN-S15**: Estado cambia a APPROVED/REJECTED según decisión HR
+
+### Corregido 🐛
+- **SQLAlchemy relationship annotation**: Changed `reviewed_by_user: "User | None"` to `reviewed_by_user: "User"` (SQLModel no soporta Union en string literals)
+- **Enum case sensitivity**: Cambiados todos los valores de enums de uppercase a lowercase (VACATION → vacation)
+- **FastAPI routing order**: Movido endpoint `GET /pending` antes de `GET /{solicitud_id}` para evitar que "pending" se interprete como parámetro de ruta
+- **Filter tipo handling**: Changed `tipo.upper()` to `tipo.lower()` en `_build_filters()` para coincidir con valores de enum
+- **Authentication fixtures**: Agregados overrides para `get_current_user` y `get_current_hr` en `hr_authenticated_client`
+- **Test data validation**: Todos los tests actualizados para usar valores lowercase en tipos y estados
+
+### Modificado 🔧
+- `app/models/user.py` - Agregado campo `vacation_days` (default 22) y relationship con solicitudes
+- `app/main.py` - Agregado router de vacaciones
+- `tests/conftest.py` - Mejorados fixtures de autenticación con overrides completos
+- `app/api/routers/vacaciones.py` - Reordenadas rutas para correcta precedencia
+
+### Migración 🗄️
+- `alembic/versions/..._add_solicitud_table.py`
+  - Tabla solicitud con foreign keys a user (user_id, reviewed_by)
+  - Índices en user_id, tipo, status, start_date, end_date
+  - Soporte para revisión con comentarios de HR
+  - Campos de auditoría completos
+  - Campo vacation_days agregado a users
+
+### Características 🚀
+- ✅ Clean Architecture (4 capas bien separadas)
+- ✅ SOLID Principles aplicados
+- ✅ 15 reglas de negocio implementadas y testeadas
+- ✅ Cálculo automático de balance de vacaciones
+- ✅ Validación de solapamiento de fechas
+- ✅ Filtros avanzados (fecha, tipo, estado, usuario)
+- ✅ Paginación en listados
+- ✅ Autorización granular (EMPLOYEE vs HR)
+- ✅ Dependency Injection (CurrentUser, CurrentHR)
+- ✅ Workflow completo de aprobación/rechazo
+- ✅ Cancelación de solicitudes por empleado
+
+### Métricas 📊
+- **Tests**: 109/109 (100%)
+  - Solicitudes: 39/39 ✅
+  - Fichajes: 24/24 ✅
+  - Autenticación: 13/13 ✅
+  - Usuarios: 33/33 ✅
+- **Endpoints**: 10 nuevos (total 32)
+- **Schemas**: 6 nuevos
+- **Reglas de negocio**: 15/15 implementadas
+- **Seed data**: +15 solicitudes
+- **Líneas de código**: ~2000 nuevas
+- **Tiempo ejecución tests**: 29.82s
+
+### Calidad 📐
+- Código pasó linting (Ruff, Pylint)
+- Type hints completos
+- Documentación exhaustiva
+- Swagger UI actualizado
+- Test coverage 100%
+
+### Debugging y Optimizaciones 🔍
+- Identificado y corregido problema de routing en FastAPI (orden de definición de rutas)
+- Solucionado problema de anotaciones de tipo en SQLModel relationships
+- Homogeneizada nomenclatura de enums (lowercase en todo el código)
+- Optimizada configuración de fixtures de autenticación en tests
+
+---
+
+## [1.0.5] - 2025-10-15 - Iteración 5: Módulo de Fichajes Completo
 
 ### Agregado ✨
 - **Módulo de Fichajes** - Sistema completo de gestión de entradas/salidas
@@ -116,7 +248,7 @@
 
 ---
 
-## [3.0.0] - 2025-10-15 - Iteración 4: Testing Completo y Seed Data
+## [1.0.4] - 2025-10-15 - Iteración 4: Testing Completo y Seed Data
 
 ### Agregado ✨
 - **Suite de testing completa**: 46 tests (100% passing)
@@ -162,7 +294,7 @@
 
 ---
 
-## [2.1.0] - 2025-10-14 - Iteración 3: Módulo de Usuarios
+## [1.0.3] - 2025-10-14 - Iteración 3: Módulo de Usuarios
 
 ### Agregado ✨
 - **Modelo User**: `app/models/user.py`
@@ -219,25 +351,7 @@
 
 ---
 
-## [2.0.1] - 2025-10-14
-
-### Corregido 🐛
-- **Comando `make dev` actualizado para FastAPI CLI**
-  - Cambiado de `uvicorn` a `fastapi dev`
-  - Comando más moderno con mejor experiencia de desarrollo
-  - Auto-reload habilitado por defecto
-  - Mejor detección de cambios en el código
-
-### Agregado ✨
-- **`app/__init__.py`** - Archivo faltante para hacer `app` un paquete importable
-
-### Archivos Modificados
-- `Makefile` - Comando `dev` actualizado
-- `app/__init__.py` - Creado
-
----
-
-## [2.0.0] - 2025-10-14 - Iteración 2: Core de la Aplicación
+## [1.0.2] - 2025-10-14 - Iteración 2: Core de la Aplicación
 
 ### Agregado ✨
 

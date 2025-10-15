@@ -4,6 +4,22 @@ Schemas Pydantic para la API.
 Modelos de entrada/salida separados de los modelos de base de datos.
 """
 
+from app.schemas.fichaje import (
+    FichajeApproval,
+    FichajeCheckIn,
+    FichajeCheckOut,
+    FichajeCorrection,
+    FichajeResponse,
+)
+from app.schemas.solicitud import (
+    SolicitudCreate,
+    SolicitudFilters,
+    SolicitudListResponse,
+    SolicitudResponse,
+    SolicitudReview,
+    SolicitudUpdate,
+    VacationBalance,
+)
 from app.schemas.user import (
     UserBase,
     UserChangePassword,
@@ -18,6 +34,17 @@ from app.schemas.user import (
 )
 
 __all__ = [
+    "FichajeApproval",
+    "FichajeCheckIn",
+    "FichajeCheckOut",
+    "FichajeCorrection",
+    "FichajeResponse",
+    "SolicitudCreate",
+    "SolicitudFilters",
+    "SolicitudListResponse",
+    "SolicitudResponse",
+    "SolicitudReview",
+    "SolicitudUpdate",
     "UserBase",
     "UserChangePassword",
     "UserCreate",
@@ -28,4 +55,5 @@ __all__ = [
     "UserResponseWithPassword",
     "UserUpdate",
     "UserUpdateSelf",
+    "VacationBalance",
 ]

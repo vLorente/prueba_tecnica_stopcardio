@@ -17,8 +17,15 @@ from alembic import context
 
 # Importar configuración y modelos
 from app.core.config import settings
-from app.models.fichaje import Fichaje, FichajeStatus  # noqa: F401
-from app.models.user import User, UserRole  # noqa: F401
+from app.models import (  # noqa: F401
+    Fichaje,
+    FichajeStatus,
+    Solicitud,
+    SolicitudStatus,
+    SolicitudTipo,
+    User,
+    UserRole,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
