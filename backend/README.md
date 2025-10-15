@@ -23,7 +23,6 @@ Backend REST API para gestión de recursos humanos con **FastAPI**, **SQLModel**
 - ✅ Async/Await en todas las operaciones
 - ✅ Role-Based Access Control (RBAC)
 - ✅ Validación Pydantic en todos los endpoints
-- ✅ 109 tests unitarios (100% passing)
 - ✅ Documentación OpenAPI/Swagger automática
 - ✅ DevContainer para desarrollo consistente
 
