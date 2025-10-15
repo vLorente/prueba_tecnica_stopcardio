@@ -1,8 +1,156 @@
-# Script de Configuración del Entorno de Desarrollo
+````markdown
+# Scripts de Desarrollo
 
-Este script (`start_enviroment.sh`) automatiza la instalación de `uv` y las dependencias del proyecto para el entorno de desarrollo en DevContainer.
+Este directorio contiene scripts útiles para el desarrollo y configuración del proyecto.
 
-## 🚀 Características
+## 📚 Scripts Disponibles
+
+### 1. `start_enviroment.sh` - Configuración del Entorno
+
+Automatiza la instalación de `uv` y las dependencias del proyecto para el entorno de desarrollo en DevContainer.
+
+### 2. `check_environment.sh` - Verificación del Entorno
+
+Verifica que todas las herramientas y dependencias estén correctamente instaladas.
+
+### 3. `seed_data.py` - Poblar Base de Datos
+
+Puebla la base de datos con datos de prueba para desarrollo y testing.
+
+---
+
+## 🌱 Seed Data Script
+
+### 🚀 Uso Rápido
+
+```bash
+# Usando Make (recomendado)
+make seed
+
+# Usando Python directamente
+uv run python scripts/seed_data.py
+
+# Sin limpiar datos existentes
+make seed-no-clear
+# O:
+uv run python scripts/seed_data.py --no-clear
+```
+
+### 📋 ¿Qué crea el seed?
+
+El script crea **12 usuarios** de prueba:
+
+#### 👔 Usuarios HR (4):
+- `admin@stopcardio.com` / `admin123`
+- `hr@stopcardio.com` / `password123`
+- `hr2@stopcardio.com` / `password123`
+- `hr@test.com` / `password123` (para tests)
+
+#### 👤 Usuarios Empleados (6):
+- `employee1@stopcardio.com` / `password123`
+- `employee2@stopcardio.com` / `password123`
+- `employee3@stopcardio.com` / `password123`
+- `employee4@stopcardio.com` / `password123`
+- `employee5@stopcardio.com` / `password123`
+- `employee@test.com` / `password123` (para tests)
+
+#### ✗ Usuarios Inactivos (2):
+- `inactive@stopcardio.com` / `password123`
+- `inactive@test.com` / `password123` (para tests)
+
+### 🎯 Características
+
+- ✅ Limpia la base de datos antes de poblarla (opcional)
+- ✅ Crea usuarios de ejemplo con roles y estados variados
+- ✅ Compatible con los tests (incluye usuarios de `conftest.py`)
+- ✅ Contraseñas hasheadas con bcrypt
+- ✅ Confirmación antes de limpiar datos
+- ✅ Output con colores y emojis informativos
+- ✅ Manejo de errores robusto
+
+### 📖 Opciones
+
+```bash
+# Ver ayuda
+uv run python scripts/seed_data.py --help
+
+# Ejecutar sin limpiar datos existentes
+uv run python scripts/seed_data.py --no-clear
+```
+
+### 🖥️ Output Ejemplo
+
+```
+================================================================================
+🌱 SEED DATA - Sistema de Gestión de Fichajes y RRHH
+================================================================================
+
+⚠️  ADVERTENCIA: Este script eliminará todos los datos existentes.
+¿Deseas continuar? (s/N): s
+
+🗑️  Limpiando base de datos...
+   ✓ Eliminados 0 usuarios existentes
+
+👥 Creando usuarios...
+   👔 ✓ Administrador Principal (admin@stopcardio.com)
+   👔 ✓ María García (hr@stopcardio.com)
+   👔 ✓ Carlos Rodríguez (hr2@stopcardio.com)
+   👤 ✓ Ana López (employee1@stopcardio.com)
+   👤 ✓ Pedro Martínez (employee2@stopcardio.com)
+   👤 ✓ Laura Fernández (employee3@stopcardio.com)
+   👤 ✓ Javier Sánchez (employee4@stopcardio.com)
+   👤 ✓ Carmen Ruiz (employee5@stopcardio.com)
+   👤 ✗ Usuario Inactivo (inactive@stopcardio.com)
+   👔 ✓ HR User (hr@test.com)
+   👤 ✓ Employee User (employee@test.com)
+   👤 ✗ Inactive User (inactive@test.com)
+
+   ✓ Creados 12 usuarios
+
+================================================================================
+✅ Seed completado exitosamente!
+================================================================================
+
+📋 CREDENCIALES DE ACCESO:
+
+👔 USUARIOS HR:
+   • admin@stopcardio.com / admin123
+   • hr@stopcardio.com / password123
+   • hr2@stopcardio.com / password123
+   • hr@test.com / password123
+
+👤 USUARIOS EMPLEADOS:
+   • employee1@stopcardio.com / password123
+   • employee2@stopcardio.com / password123
+   • employee3@stopcardio.com / password123
+   • employee4@stopcardio.com / password123
+   • employee5@stopcardio.com / password123
+   • employee@test.com / password123
+
+✗ USUARIOS INACTIVOS:
+   • inactive@stopcardio.com / password123
+   • inactive@test.com / password123
+
+================================================================================
+💡 TIP: Usa estos usuarios para probar la API
+   - Los usuarios HR pueden gestionar todos los recursos
+   - Los empleados solo pueden ver/editar sus propios datos
+   - Los usuarios inactivos no pueden hacer login
+================================================================================
+```
+
+### ⚠️ Advertencias
+
+- **SOLO PARA DESARROLLO**: No ejecutar en producción
+- Elimina todos los datos existentes por defecto
+- Requiere confirmación antes de limpiar la base de datos
+- Use `--no-clear` para agregar datos sin eliminar existentes
+
+---
+
+## 🚀 Script de Configuración del Entorno
+
+### Características
 
 - ✅ Instalación automática de `uv` (gestor de paquetes Python)
 - ✅ Instalación de dependencias del sistema (PostgreSQL dev libs, build tools, etc.)
@@ -13,7 +161,7 @@ Este script (`start_enviroment.sh`) automatiza la instalación de `uv` y las dep
 - ✅ Manejo robusto de errores
 - ✅ Ejecución automática en `postCreateCommand` del devcontainer
 
-## 📋 Uso
+### Uso
 
 ### En Desarrollo (DevContainer)
 

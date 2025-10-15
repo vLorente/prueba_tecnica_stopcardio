@@ -1,0 +1,401 @@
+###
+# API REST Tests - Sistema de Gestión de Fichajes y RRHH
+# Usar con la extensión REST Client de VS Code
+# Base URL: http://localhost:8000
+###
+
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+### Variables (actualizar con tokens reales después de login)
+@employeeToken = tu_token_de_empleado_aqui
+@hrToken = tu_token_de_hr_aqui
+@userId = 1
+
+################################################################################
+# AUTENTICACIÓN
+################################################################################
+
+### 1. Login como HR
+# @name loginHR
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@stopcardio.com",
+  "password": "admin123"
+}
+
+### Guardar token HR (ejecutar después del login)
+@hrToken = {{loginHR.response.body.access_token}}
+
+### 2. Login como Empleado
+# @name loginEmployee
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "employee@test.com",
+  "password": "password123"
+}
+
+### Guardar token Empleado (ejecutar después del login)
+@employeeToken = {{loginEmployee.response.body.access_token}}
+
+### 3. Login con credenciales incorrectas (debería fallar)
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "noexiste@test.com",
+  "password": "wrongpassword"
+}
+
+### 4. Obtener información del usuario actual (con token HR)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{hrToken}}
+
+### 5. Obtener información del usuario actual (con token Empleado)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{employeeToken}}
+
+### 6. Logout
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{employeeToken}}
+
+################################################################################
+# GESTIÓN DE USUARIOS (CRUD)
+################################################################################
+
+### 7. Crear nuevo usuario empleado (solo HR)
+POST {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "nuevo.empleado@test.com",
+  "full_name": "Nuevo Empleado Test",
+  "password": "securepass123",
+  "role": "employee"
+}
+
+### 8. Crear nuevo usuario HR (solo HR)
+POST {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "nuevo.hr@test.com",
+  "full_name": "Nuevo HR Test",
+  "password": "securepass123",
+  "role": "hr"
+}
+
+### 9. Intentar crear usuario sin autenticación (debería fallar con 401)
+POST {{baseUrl}}/api/users/
+Content-Type: {{contentType}}
+
+{
+  "email": "sinauth@test.com",
+  "full_name": "Sin Autenticación",
+  "password": "securepass123",
+  "role": "employee"
+}
+
+### 10. Crear usuario con email duplicado (debería fallar con 409)
+POST {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "employee@test.com",
+  "full_name": "Email Duplicado",
+  "password": "securepass123",
+  "role": "employee"
+}
+
+### 11. Crear usuario con email inválido (debería fallar con 422)
+POST {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "not-an-email",
+  "full_name": "Email Inválido",
+  "password": "securepass123",
+  "role": "employee"
+}
+
+### 12. Crear usuario con contraseña corta (debería fallar con 422)
+POST {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "test@test.com",
+  "full_name": "Contraseña Corta",
+  "password": "123",
+  "role": "employee"
+}
+
+################################################################################
+# LISTADO DE USUARIOS
+################################################################################
+
+### 13. Listar todos los usuarios (como HR)
+GET {{baseUrl}}/api/users/
+Authorization: Bearer {{hrToken}}
+
+### 14. Listar usuarios con paginación
+GET {{baseUrl}}/api/users/?skip=0&limit=5
+Authorization: Bearer {{hrToken}}
+
+### 15. Filtrar usuarios por rol (employee)
+GET {{baseUrl}}/api/users/?role=employee
+Authorization: Bearer {{hrToken}}
+
+### 16. Filtrar usuarios por rol (hr)
+GET {{baseUrl}}/api/users/?role=hr
+Authorization: Bearer {{hrToken}}
+
+### 17. Filtrar usuarios activos
+GET {{baseUrl}}/api/users/?is_active=true
+Authorization: Bearer {{hrToken}}
+
+### 18. Combinar filtros: empleados activos
+GET {{baseUrl}}/api/users/?role=employee&is_active=true
+Authorization: Bearer {{hrToken}}
+
+### 19. Intentar listar usuarios como empleado (debería fallar con 403)
+GET {{baseUrl}}/api/users/
+Authorization: Bearer {{employeeToken}}
+
+### 20. Intentar listar usuarios sin autenticación (debería fallar con 401)
+GET {{baseUrl}}/api/users/
+
+################################################################################
+# CONSULTAR USUARIOS INDIVIDUALES
+################################################################################
+
+### 21. Obtener perfil propio (como empleado)
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{employeeToken}}
+
+### 22. Obtener perfil propio (como HR)
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{hrToken}}
+
+### 23. Obtener usuario por ID (como HR)
+GET {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 24. Empleado intenta ver otro usuario (debería fallar con 403)
+GET {{baseUrl}}/api/users/1
+Authorization: Bearer {{employeeToken}}
+
+### 25. Obtener usuario inexistente (debería fallar con 404)
+GET {{baseUrl}}/api/users/99999
+Authorization: Bearer {{hrToken}}
+
+################################################################################
+# ACTUALIZAR USUARIOS
+################################################################################
+
+### 26. Actualizar usuario completamente (como HR)
+PUT {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "actualizado@test.com",
+  "full_name": "Nombre Actualizado",
+  "role": "employee",
+  "is_active": true
+}
+
+### 27. Empleado intenta actualizar usuario (debería fallar con 403)
+PUT {{baseUrl}}/api/users/1
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "full_name": "Intento Actualización"
+}
+
+### 28. Actualizar a email duplicado (debería fallar con 409)
+PUT {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{hrToken}}
+Content-Type: {{contentType}}
+
+{
+  "email": "hr@test.com"
+}
+
+### 29. Actualizar perfil propio (como empleado)
+PATCH {{baseUrl}}/api/users/me
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "full_name": "Mi Nuevo Nombre"
+}
+
+### 30. Actualizar contraseña propia
+PATCH {{baseUrl}}/api/users/me
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "password": "nuevapassword123"
+}
+
+### 31. Actualizar perfil sin autenticación (debería fallar con 401)
+PATCH {{baseUrl}}/api/users/me
+Content-Type: {{contentType}}
+
+{
+  "full_name": "Sin Auth"
+}
+
+################################################################################
+# CAMBIAR CONTRASEÑA
+################################################################################
+
+### 32. Cambiar contraseña exitosamente
+POST {{baseUrl}}/api/users/change-password
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "current_password": "password123",
+  "new_password": "nuevapassword456"
+}
+
+### 33. Cambiar contraseña con contraseña actual incorrecta (debería fallar con 401)
+POST {{baseUrl}}/api/users/change-password
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "current_password": "wrongpassword",
+  "new_password": "nuevapassword456"
+}
+
+### 34. Cambiar contraseña con nueva contraseña corta (debería fallar con 422)
+POST {{baseUrl}}/api/users/change-password
+Authorization: Bearer {{employeeToken}}
+Content-Type: {{contentType}}
+
+{
+  "current_password": "password123",
+  "new_password": "123"
+}
+
+################################################################################
+# ELIMINAR USUARIOS
+################################################################################
+
+### 35. HR elimina un usuario empleado
+DELETE {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{hrToken}}
+
+### 36. Empleado intenta eliminar usuario (debería fallar con 403)
+DELETE {{baseUrl}}/api/users/1
+Authorization: Bearer {{employeeToken}}
+
+### 37. HR intenta eliminarse a sí mismo (debería fallar con 400)
+DELETE {{baseUrl}}/api/users/2
+Authorization: Bearer {{hrToken}}
+
+### 38. Eliminar usuario inexistente (debería fallar con 404)
+DELETE {{baseUrl}}/api/users/99999
+Authorization: Bearer {{hrToken}}
+
+################################################################################
+# CASOS DE ERROR COMUNES
+################################################################################
+
+### 39. Request sin Content-Type (debería funcionar igual)
+POST {{baseUrl}}/api/auth/login
+
+{
+  "email": "employee@test.com",
+  "password": "password123"
+}
+
+### 40. Request con token malformado (debería fallar con 401)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer token_malformado_123
+
+### 41. Request con token expirado (debería fallar con 401)
+# Nota: Usar un token generado hace más de 15 minutos
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired.token
+
+### 42. Request con Authorization header incompleto (debería fallar con 401)
+GET {{baseUrl}}/api/auth/me
+Authorization: {{hrToken}}
+
+################################################################################
+# HEALTH CHECK & DOCS
+################################################################################
+
+### 43. Health check / Root endpoint
+GET {{baseUrl}}/
+
+### 44. OpenAPI Documentation (JSON)
+GET {{baseUrl}}/openapi.json
+
+### 45. Swagger UI Documentation
+GET {{baseUrl}}/docs
+
+### 46. ReDoc Documentation
+GET {{baseUrl}}/redoc
+
+################################################################################
+# SECUENCIA DE PRUEBA COMPLETA
+################################################################################
+
+### SECUENCIA 1: Flujo completo de HR
+# 1. Login como HR
+# 2. Listar usuarios
+# 3. Crear nuevo empleado
+# 4. Actualizar empleado
+# 5. Ver detalles del empleado
+# 6. Eliminar empleado
+
+### SECUENCIA 2: Flujo completo de Empleado
+# 1. Login como empleado
+# 2. Ver mi perfil
+# 3. Actualizar mi perfil
+# 4. Cambiar mi contraseña
+# 5. Intentar ver otros usuarios (debe fallar)
+# 6. Intentar crear usuarios (debe fallar)
+
+################################################################################
+# NOTAS DE USO
+################################################################################
+
+# Para usar este archivo:
+# 1. Instala la extensión "REST Client" en VS Code
+# 2. Inicia el servidor: make dev (o uv run uvicorn app.main:app --reload)
+# 3. Ejecuta las requests haciendo clic en "Send Request" sobre cada ###
+# 4. Los tokens se pueden guardar automáticamente usando @name y capturando la respuesta
+# 5. Actualiza las variables @baseUrl, @userId según tu entorno
+
+# Códigos de estado esperados:
+# 200 OK - Operación exitosa (GET, PUT, PATCH, POST)
+# 201 Created - Recurso creado exitosamente
+# 204 No Content - Eliminación exitosa (DELETE)
+# 400 Bad Request - Datos inválidos
+# 401 Unauthorized - No autenticado o credenciales incorrectas
+# 403 Forbidden - No autorizado (sin permisos)
+# 404 Not Found - Recurso no encontrado
+# 409 Conflict - Conflicto (email duplicado)
+# 422 Unprocessable Entity - Error de validación
+
+# Variables útiles:
+# {{baseUrl}} - URL base de la API
+# {{hrToken}} - Token JWT de usuario HR
+# {{employeeToken}} - Token JWT de usuario empleado
+# {{userId}} - ID de usuario para operaciones individuales

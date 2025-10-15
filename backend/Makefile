@@ -60,7 +60,11 @@ migrate-down: ## Revertir última migración
 
 seed: ## Ejecutar seed de datos
 	@echo "🌱 Ejecutando seed..."
-	$(PYTHON) -m app.scripts.seed_data
+	$(PYTHON) scripts/seed_data.py
+
+seed-no-clear: ## Ejecutar seed sin limpiar datos existentes
+	@echo "🌱 Ejecutando seed (sin limpiar)..."
+	$(PYTHON) scripts/seed_data.py --no-clear
 
 clean: ## Limpiar archivos temporales
 	@echo "🧹 Limpiando archivos temporales..."
