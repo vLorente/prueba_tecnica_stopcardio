@@ -34,8 +34,8 @@
 				"github.copilot-chat",
 				"tamasfe.even-better-toml",
 				"yzhang.markdown-all-in-one",
-				"ms-vscode.makefile-tools",
-				"qwtel.sqlite-viewer"
+				"qwtel.sqlite-viewer",
+				"humao.rest-client"
 			],
 			"settings": {
 				"python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",

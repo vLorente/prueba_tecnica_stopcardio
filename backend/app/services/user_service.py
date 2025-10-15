@@ -37,11 +37,7 @@ class UserService:
         self.session = session
         self.user_repo = UserRepository(session)
 
-    async def create_user(
-        self,
-        user_data: UserCreate,
-        created_by: User | None = None
-    ) -> User:
+    async def create_user(self, user_data: UserCreate, created_by: User | None = None) -> User:
         """
         Crea un nuevo usuario.
 
@@ -59,8 +55,7 @@ class UserService:
         # Solo HR puede crear otros usuarios HR
         if user_data.role == UserRole.HR and (not created_by or not created_by.is_hr):
             raise AuthorizationException(
-                message="Solo HR puede crear usuarios con rol HR",
-                details={"required_role": "HR"}
+                message="Solo HR puede crear usuarios con rol HR", details={"required_role": "HR"}
             )
 
         # Crear usuario
@@ -69,7 +64,7 @@ class UserService:
             full_name=user_data.full_name,
             hashed_password=get_password_hash(user_data.password),
             role=user_data.role,
-            is_active=True
+            is_active=True,
         )
 
         return await self.user_repo.create(user)
@@ -91,7 +86,7 @@ class UserService:
             full_name=user_data.full_name,
             hashed_password=get_password_hash(user_data.password),
             role=user_data.role,
-            is_active=user_data.is_active
+            is_active=user_data.is_active,
         )
 
         return await self.user_repo.create(user)
@@ -112,8 +107,7 @@ class UserService:
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise NotFoundException(
-                message=f"Usuario con ID {user_id} no encontrado",
-                details={"user_id": user_id}
+                message=f"Usuario con ID {user_id} no encontrado", details={"user_id": user_id}
             )
         return user
 
@@ -133,8 +127,7 @@ class UserService:
         user = await self.user_repo.get_by_email(email)
         if not user:
             raise NotFoundException(
-                message=f"Usuario con email {email} no encontrado",
-                details={"email": email}
+                message=f"Usuario con email {email} no encontrado", details={"email": email}
             )
         return user
 
@@ -143,7 +136,7 @@ class UserService:
         skip: int = 0,
         limit: int = 100,
         role: UserRole | None = None,
-        is_active: bool | None = None
+        is_active: bool | None = None,
     ) -> tuple[list[User], int]:
         """
         Obtiene lista de usuarios con paginación.
@@ -157,21 +150,11 @@ class UserService:
         Returns:
             tuple[list[User], int]: Lista de usuarios y total
         """
-        users = await self.user_repo.get_all(
-            skip=skip,
-            limit=limit,
-            role=role,
-            is_active=is_active
-        )
+        users = await self.user_repo.get_all(skip=skip, limit=limit, role=role, is_active=is_active)
         total = await self.user_repo.count(role=role, is_active=is_active)
         return users, total
 
-    async def update_user(
-        self,
-        user_id: int,
-        user_data: UserUpdate,
-        updated_by: User
-    ) -> User:
+    async def update_user(self, user_id: int, user_data: UserUpdate, updated_by: User) -> User:
         """
         Actualiza un usuario (por HR).
 
@@ -191,8 +174,7 @@ class UserService:
         # Solo HR puede actualizar usuarios
         if not updated_by.is_hr:
             raise AuthorizationException(
-                message="Solo HR puede actualizar usuarios",
-                details={"required_role": "HR"}
+                message="Solo HR puede actualizar usuarios", details={"required_role": "HR"}
             )
 
         user = await self.get_user_by_id(user_id)
@@ -203,7 +185,7 @@ class UserService:
             if await self.user_repo.exists_by_email(user_data.email, exclude_id=user_id):
                 raise ConflictException(
                     message=f"El email {user_data.email} ya está registrado",
-                    details={"email": user_data.email}
+                    details={"email": user_data.email},
                 )
             user.email = user_data.email
 
@@ -221,11 +203,7 @@ class UserService:
 
         return await self.user_repo.update(user)
 
-    async def update_self(
-        self,
-        user_id: int,
-        user_data: UserUpdateSelf
-    ) -> User:
+    async def update_self(self, user_id: int, user_data: UserUpdateSelf) -> User:
         """
         Actualiza los propios datos del usuario.
 
@@ -250,12 +228,7 @@ class UserService:
 
         return await self.user_repo.update(user)
 
-    async def change_password(
-        self,
-        user_id: int,
-        current_password: str,
-        new_password: str
-    ) -> User:
+    async def change_password(self, user_id: int, current_password: str, new_password: str) -> User:
         """
         Cambia la contraseña del usuario.
 
@@ -276,8 +249,7 @@ class UserService:
         # Verificar contraseña actual
         if not verify_password(current_password, user.hashed_password):
             raise AuthenticationException(
-                message="Contraseña actual incorrecta",
-                details={"field": "current_password"}
+                message="Contraseña actual incorrecta", details={"field": "current_password"}
             )
 
         # Actualizar contraseña
@@ -302,18 +274,23 @@ class UserService:
         # Solo HR puede eliminar usuarios
         if not deleted_by.is_hr:
             raise AuthorizationException(
-                message="Solo HR puede eliminar usuarios",
-                details={"required_role": "HR"}
+                message="Solo HR puede eliminar usuarios", details={"required_role": "HR"}
             )
 
         # No puede eliminarse a sí mismo
         if user_id == deleted_by.id:
             raise ValidationException(
-                message="No puedes eliminarte a ti mismo",
-                details={"user_id": user_id}
+                message="No puedes eliminarte a ti mismo", details={"user_id": user_id}
             )
 
-        return await self.user_repo.delete(user_id)
+        deleted = await self.user_repo.delete(user_id)
+
+        if not deleted:
+            raise NotFoundException(
+                message=f"Usuario con ID {user_id} no encontrado", details={"user_id": user_id}
+            )
+
+        return deleted
 
     async def authenticate_user(self, email: str, password: str) -> User:
         """
@@ -333,20 +310,15 @@ class UserService:
 
         if not user:
             raise AuthenticationException(
-                message="Credenciales inválidas",
-                details={"field": "email"}
+                message="Credenciales inválidas", details={"field": "email"}
             )
 
         if not verify_password(password, user.hashed_password):
             raise AuthenticationException(
-                message="Credenciales inválidas",
-                details={"field": "password"}
+                message="Credenciales inválidas", details={"field": "password"}
             )
 
         if not user.is_active:
-            raise AuthenticationException(
-                message="Usuario inactivo",
-                details={"email": email}
-            )
+            raise AuthenticationException(message="Usuario inactivo", details={"email": email})
 
         return user

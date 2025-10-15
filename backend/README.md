@@ -122,24 +122,24 @@ app/
 
 ### Authentication (`/api/auth`)
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/login` | Login con email/password | ❌ |
-| POST | `/logout` | Logout (client-side) | ✅ |
-| GET | `/me` | Perfil del usuario actual | ✅ |
+| Método | Endpoint  | Descripción               | Auth |
+| ------ | --------- | ------------------------- | ---- |
+| POST   | `/login`  | Login con email/password  | ❌    |
+| POST   | `/logout` | Logout (client-side)      | ✅    |
+| GET    | `/me`     | Perfil del usuario actual | ✅    |
 
 ### Users (`/api/users`)
 
-| Método | Endpoint | Descripción | Rol |
-|--------|----------|-------------|-----|
-| POST | `/` | Crear usuario | - |
-| GET | `/` | Listar usuarios (paginado) | HR |
-| GET | `/me` | Ver propio perfil | - |
-| GET | `/{id}` | Ver usuario por ID | HR/Self |
-| PUT | `/{id}` | Actualizar usuario | HR |
-| PATCH | `/me` | Actualizar propio perfil | - |
-| POST | `/change-password` | Cambiar contraseña | - |
-| DELETE | `/{id}` | Eliminar usuario | HR |
+| Método | Endpoint           | Descripción                | Rol     |
+| ------ | ------------------ | -------------------------- | ------- |
+| POST   | `/`                | Crear usuario              | -       |
+| GET    | `/`                | Listar usuarios (paginado) | HR      |
+| GET    | `/me`              | Ver propio perfil          | -       |
+| GET    | `/{id}`            | Ver usuario por ID         | HR/Self |
+| PUT    | `/{id}`            | Actualizar usuario         | HR      |
+| PATCH  | `/me`              | Actualizar propio perfil   | -       |
+| POST   | `/change-password` | Cambiar contraseña         | -       |
+| DELETE | `/{id}`            | Eliminar usuario           | HR      |
 
 **Documentación interactiva:** http://localhost:8000/docs
 
@@ -205,16 +205,16 @@ make clean-db     # Eliminar base de datos de desarrollo
 
 ### Tabla `user`
 
-| Campo | Tipo | Restricciones |
-|-------|------|---------------|
-| id | INTEGER | PRIMARY KEY |
-| email | VARCHAR | UNIQUE, INDEX |
-| full_name | VARCHAR | NOT NULL |
-| hashed_password | VARCHAR | NOT NULL |
-| role | VARCHAR(8) | 'employee' o 'hr' |
-| is_active | BOOLEAN | DEFAULT true |
-| created_at | DATETIME | AUTO |
-| updated_at | DATETIME | AUTO |
+| Campo           | Tipo       | Restricciones     |
+| --------------- | ---------- | ----------------- |
+| id              | INTEGER    | PRIMARY KEY       |
+| email           | VARCHAR    | UNIQUE, INDEX     |
+| full_name       | VARCHAR    | NOT NULL          |
+| hashed_password | VARCHAR    | NOT NULL          |
+| role            | VARCHAR(8) | 'employee' o 'hr' |
+| is_active       | BOOLEAN    | DEFAULT true      |
+| created_at      | DATETIME   | AUTO              |
+| updated_at      | DATETIME   | AUTO              |
 
 ---
 

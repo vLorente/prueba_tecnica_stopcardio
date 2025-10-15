@@ -16,15 +16,12 @@ from app.models.user import UserRole
 class UserBase(BaseModel):
     """Schema base con campos comunes de usuario."""
 
-    email: EmailStr = Field(
-        description="Email del usuario",
-        examples=["usuario@example.com"]
-    )
+    email: EmailStr = Field(description="Email del usuario", examples=["usuario@example.com"])
     full_name: str = Field(
         min_length=1,
         max_length=255,
         description="Nombre completo del usuario",
-        examples=["Juan Pérez"]
+        examples=["Juan Pérez"],
     )
 
 
@@ -36,12 +33,9 @@ class UserCreate(UserBase):
         min_length=8,
         max_length=100,
         description="Contraseña del usuario (mínimo 8 caracteres)",
-        examples=["SecurePass123!"]
+        examples=["SecurePass123!"],
     )
-    role: UserRole = Field(
-        default=UserRole.EMPLOYEE,
-        description="Rol del usuario"
-    )
+    role: UserRole = Field(default=UserRole.EMPLOYEE, description="Rol del usuario")
 
 
 class UserCreateByHR(UserCreate):
@@ -51,40 +45,22 @@ class UserCreateByHR(UserCreate):
     Permite especificar si el usuario está activo desde la creación.
     """
 
-    is_active: bool = Field(
-        default=True,
-        description="Si el usuario está activo"
-    )
+    is_active: bool = Field(default=True, description="Si el usuario está activo")
 
 
 # Schemas para actualización
 class UserUpdate(BaseModel):
     """Schema para actualizar un usuario."""
 
-    email: EmailStr | None = Field(
-        default=None,
-        description="Nuevo email del usuario"
-    )
+    email: EmailStr | None = Field(default=None, description="Nuevo email del usuario")
     full_name: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=255,
-        description="Nuevo nombre completo"
+        default=None, min_length=1, max_length=255, description="Nuevo nombre completo"
     )
     password: str | None = Field(
-        default=None,
-        min_length=8,
-        max_length=100,
-        description="Nueva contraseña"
+        default=None, min_length=8, max_length=100, description="Nueva contraseña"
     )
-    role: UserRole | None = Field(
-        default=None,
-        description="Nuevo rol"
-    )
-    is_active: bool | None = Field(
-        default=None,
-        description="Nuevo estado activo"
-    )
+    role: UserRole | None = Field(default=None, description="Nuevo rol")
+    is_active: bool | None = Field(default=None, description="Nuevo estado activo")
 
 
 class UserUpdateSelf(BaseModel):
@@ -95,16 +71,10 @@ class UserUpdateSelf(BaseModel):
     """
 
     full_name: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=255,
-        description="Nuevo nombre completo"
+        default=None, min_length=1, max_length=255, description="Nuevo nombre completo"
     )
     password: str | None = Field(
-        default=None,
-        min_length=8,
-        max_length=100,
-        description="Nueva contraseña"
+        default=None, min_length=8, max_length=100, description="Nueva contraseña"
     )
 
 
@@ -135,29 +105,20 @@ class UserResponseWithPassword(UserResponse):
 class UserLogin(BaseModel):
     """Schema para login de usuario."""
 
-    email: EmailStr = Field(
-        description="Email del usuario",
-        examples=["usuario@example.com"]
-    )
-    password: str = Field(
-        description="Contraseña del usuario",
-        examples=["SecurePass123!"]
-    )
+    email: EmailStr = Field(description="Email del usuario", examples=["usuario@example.com"])
+    password: str = Field(description="Contraseña del usuario", examples=["SecurePass123!"])
 
 
 # Schema para cambiar contraseña
 class UserChangePassword(BaseModel):
     """Schema para cambiar la contraseña."""
 
-    current_password: str = Field(
-        description="Contraseña actual",
-        examples=["OldPassword123!"]
-    )
+    current_password: str = Field(description="Contraseña actual", examples=["OldPassword123!"])
     new_password: str = Field(
         min_length=8,
         max_length=100,
         description="Nueva contraseña (mínimo 8 caracteres)",
-        examples=["NewPassword123!"]
+        examples=["NewPassword123!"],
     )
 
 
@@ -165,17 +126,7 @@ class UserChangePassword(BaseModel):
 class UserListResponse(BaseModel):
     """Schema de respuesta para lista de usuarios."""
 
-    users: list[UserResponse] = Field(
-        description="Lista de usuarios"
-    )
-    total: int = Field(
-        description="Total de usuarios"
-    )
-    page: int = Field(
-        description="Página actual",
-        ge=1
-    )
-    page_size: int = Field(
-        description="Tamaño de página",
-        ge=1
-    )
+    users: list[UserResponse] = Field(description="Lista de usuarios")
+    total: int = Field(description="Total de usuarios")
+    page: int = Field(description="Página actual", ge=1)
+    page_size: int = Field(description="Tamaño de página", ge=1)

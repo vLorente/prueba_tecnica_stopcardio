@@ -37,24 +37,22 @@ router = APIRouter()
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Crear usuario",
-    description="Crea un nuevo usuario. HR puede crear cualquier usuario, empleados solo pueden auto-registrarse.",
+    description="Crea un nuevo usuario. Solo HR puede crear usuarios.",
 )
 async def create_user(
-    user_data: UserCreate | UserCreateByHR,
+    user_data: UserCreate,
     session: SessionDep,
-    current_user: CurrentUser | None = None,
+    current_hr: CurrentHR,
 ) -> UserResponse:
     """
     Crea un nuevo usuario.
 
-    - **HR**: Puede crear usuarios con cualquier rol y definir is_active
-    - **Empleado**: Solo puede auto-registrarse con rol EMPLOYEE
-    - **Sin auth**: Permite auto-registro público (opcional, configurar en producción)
+    Solo usuarios con rol HR pueden crear nuevos usuarios.
 
     Args:
         user_data: Datos del nuevo usuario
         session: Sesión de base de datos
-        current_user: Usuario actual (opcional para auto-registro)
+        current_hr: Usuario HR actual (requerido)
 
     Returns:
         UserResponse: Usuario creado
@@ -65,27 +63,9 @@ async def create_user(
     try:
         user_service = UserService(session)
 
-        # Si hay usuario actual
-        if current_user:
-            # HR puede crear cualquier usuario
-            if isinstance(user_data, UserCreateByHR):
-                if not current_user.is_hr:
-                    raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN,
-                        detail="Solo HR puede usar UserCreateByHR",
-                    )
-                user = await user_service.create_user_by_hr(user_data)
-            else:
-                # Empleado puede auto-registrarse
-                user = await user_service.create_user(user_data=user_data, created_by=current_user)
-        else:
-            # Auto-registro sin autenticación (solo EMPLOYEE)
-            if isinstance(user_data, UserCreateByHR):
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="No se permite crear usuarios con este endpoint sin autenticación",
-                )
-            user = await user_service.create_user(user_data=user_data)
+        # Convertir a UserCreateByHR para mantener compatibilidad con el servicio
+        hr_data = UserCreateByHR(**user_data.model_dump())
+        user = await user_service.create_user_by_hr(hr_data)
 
         return UserResponse.model_validate(user)
 
@@ -128,9 +108,9 @@ async def list_users(
     """
     user_service = UserService(session)
 
-    users = await user_service.get_all_users(skip=skip, limit=limit, role=role, is_active=is_active)
-
-    total = await user_service.user_repo.count(role=role, is_active=is_active)
+    users, total = await user_service.get_all_users(
+        skip=skip, limit=limit, role=role, is_active=is_active
+    )
 
     return UserListResponse(
         users=[UserResponse.model_validate(user) for user in users],
@@ -314,10 +294,10 @@ async def change_password(
             new_password=password_data.new_password,
         )
 
-        return {"message": "Contraseña actualizada exitosamente"}
-
     except AuthenticationException as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message) from e
+    else:
+        return {"message": "Contraseña actualizada exitosamente"}
 
 
 @router.delete(

@@ -7,6 +7,7 @@ Maneja el hashing de contraseñas, generación y validación de JWT tokens.
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -44,39 +45,26 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """
-    Crea un token JWT de acceso.
+    Crea un token de acceso JWT.
 
     Args:
         data: Datos a incluir en el token
-        expires_delta: Tiempo de expiración opcional
+        expires_delta: Tiempo de expiración del token
 
     Returns:
         str: Token JWT codificado
     """
-    try:
-        from jose import jwt
-    except ImportError as exc:
-        raise ImportError(
-            "python-jose no está instalado. "
-            "Instálalo con: uv add python-jose[cryptography]"
-        ) from exc
-
     to_encode = data.copy()
 
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(
-            minutes=settings.access_token_expire_minutes
-        )
+        expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
 
     to_encode.update({"exp": expire})
-    return jwt.encode(
-        to_encode,
-        settings.secret_key,
-        algorithm=settings.algorithm
-    )
 
+    # PyJWT encode devuelve str directamente
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
 def create_refresh_token(data: dict[str, Any]) -> str:
@@ -101,24 +89,12 @@ def decode_token(token: str) -> dict[str, Any]:
         token: Token JWT a decodificar
 
     Returns:
-        dict: Payload del token
+        dict: Payload del token decodificado
 
     Raises:
-        JWTError: Si el token es inválido o expiró
+        jwt.ExpiredSignatureError: Si el token ha expirado
+        jwt.DecodeError: Si el token no puede ser decodificado
+        jwt.InvalidTokenError: Si el token es inválido
     """
-    try:
-        from jose import JWTError, jwt
-    except ImportError as exc:
-        raise ImportError(
-            "python-jose no está instalado. "
-            "Instálalo con: uv add python-jose[cryptography]"
-        ) from exc
-
-    try:
-        return jwt.decode(
-            token,
-            settings.secret_key,
-            algorithms=[settings.algorithm]
-        )
-    except JWTError:
-        raise
+    # PyJWT decode devuelve dict directamente
+    return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])

@@ -21,8 +21,8 @@ class UserRole(str, Enum):
     - HR: Recursos Humanos (acceso completo al sistema)
     """
 
-    EMPLOYEE = "EMPLOYEE"
-    HR = "HR"
+    EMPLOYEE = "employee"
+    HR = "hr"
 
 
 class User(BaseModel, table=True):
@@ -35,30 +35,22 @@ class User(BaseModel, table=True):
     # Información básica
     email: str = Field(
         sa_column=Column(String(255), unique=True, index=True, nullable=False),
-        description="Email del usuario (usado para login)"
+        description="Email del usuario (usado para login)",
     )
     full_name: str = Field(
-        sa_column=Column(String(255), nullable=False),
-        description="Nombre completo del usuario"
+        sa_column=Column(String(255), nullable=False), description="Nombre completo del usuario"
     )
 
     # Autenticación
     hashed_password: str = Field(
-        sa_column=Column(String(255), nullable=False),
-        description="Contraseña hasheada con bcrypt"
+        sa_column=Column(String(255), nullable=False), description="Contraseña hasheada con bcrypt"
     )
 
     # Role y permisos
-    role: UserRole = Field(
-        default=UserRole.EMPLOYEE,
-        description="Rol del usuario en el sistema"
-    )
+    role: UserRole = Field(default=UserRole.EMPLOYEE, description="Rol del usuario en el sistema")
 
     # Estado
-    is_active: bool = Field(
-        default=True,
-        description="Si el usuario está activo en el sistema"
-    )
+    is_active: bool = Field(default=True, description="Si el usuario está activo en el sistema")
 
     def __repr__(self) -> str:
         """Representación en string del usuario."""

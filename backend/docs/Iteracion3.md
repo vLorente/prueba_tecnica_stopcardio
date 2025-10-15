@@ -103,21 +103,21 @@ class User(BaseModel, table=True):
 
 #### Schemas de Entrada (Request)
 
-| Schema | Uso | Campos |
-|--------|-----|--------|
-| `UserCreate` | Auto-registro | email, full_name, password, role |
-| `UserCreateByHR` | Creación por HR | + is_active |
-| `UserUpdate` | Actualización por HR | email, full_name, password, role, is_active (todos opcionales) |
-| `UserUpdateSelf` | Actualización propia | full_name, password (opcionales) |
-| `UserLogin` | Login | email, password |
-| `UserChangePassword` | Cambio de contraseña | current_password, new_password |
+| Schema               | Uso                  | Campos                                                         |
+| -------------------- | -------------------- | -------------------------------------------------------------- |
+| `UserCreate`         | Auto-registro        | email, full_name, password, role                               |
+| `UserCreateByHR`     | Creación por HR      | + is_active                                                    |
+| `UserUpdate`         | Actualización por HR | email, full_name, password, role, is_active (todos opcionales) |
+| `UserUpdateSelf`     | Actualización propia | full_name, password (opcionales)                               |
+| `UserLogin`          | Login                | email, password                                                |
+| `UserChangePassword` | Cambio de contraseña | current_password, new_password                                 |
 
 #### Schemas de Salida (Response)
 
-| Schema | Uso | Características |
-|--------|-----|----------------|
-| `UserResponse` | Respuesta estándar | Excluye hashed_password |
-| `UserListResponse` | Lista paginada | users[], total, page, page_size |
+| Schema             | Uso                | Características                 |
+| ------------------ | ------------------ | ------------------------------- |
+| `UserResponse`     | Respuesta estándar | Excluye hashed_password         |
+| `UserListResponse` | Lista paginada     | users[], total, page, page_size |
 
 **Validaciones:**
 - ✅ Email válido con `EmailStr`
@@ -180,17 +180,17 @@ Lógica de negocio con reglas de autorización:
 
 #### Reglas de Autorización
 
-| Operación | EMPLOYEE | HR |
-|-----------|----------|-----|
-| Crear usuario EMPLOYEE | ✅ (auto-registro) | ✅ |
-| Crear usuario HR | ❌ | ✅ |
-| Ver propio perfil | ✅ | ✅ |
-| Ver otros perfiles | ❌ | ✅ |
-| Listar usuarios | ❌ | ✅ |
-| Actualizar propio perfil | ✅ (limitado) | ✅ |
-| Actualizar otros usuarios | ❌ | ✅ |
-| Cambiar contraseña propia | ✅ | ✅ |
-| Eliminar usuario | ❌ | ✅ |
+| Operación                 | EMPLOYEE          | HR  |
+| ------------------------- | ----------------- | --- |
+| Crear usuario EMPLOYEE    | ✅ (auto-registro) | ✅   |
+| Crear usuario HR          | ❌                 | ✅   |
+| Ver propio perfil         | ✅                 | ✅   |
+| Ver otros perfiles        | ❌                 | ✅   |
+| Listar usuarios           | ❌                 | ✅   |
+| Actualizar propio perfil  | ✅ (limitado)      | ✅   |
+| Actualizar otros usuarios | ❌                 | ✅   |
+| Cambiar contraseña propia | ✅                 | ✅   |
+| Eliminar usuario          | ❌                 | ✅   |
 
 ---
 
@@ -226,11 +226,11 @@ CurrentHR = Annotated[User, Depends(require_hr)]
 
 #### **Auth Router** (`/api/auth`)
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/login` | Autenticación con email/password | ❌ |
-| POST | `/logout` | Cerrar sesión (client-side) | ✅ |
-| GET | `/me` | Obtener perfil actual | ✅ |
+| Método | Endpoint  | Descripción                      | Auth |
+| ------ | --------- | -------------------------------- | ---- |
+| POST   | `/login`  | Autenticación con email/password | ❌    |
+| POST   | `/logout` | Cerrar sesión (client-side)      | ✅    |
+| GET    | `/me`     | Obtener perfil actual            | ✅    |
 
 **Respuesta de Login:**
 ```json
@@ -249,16 +249,16 @@ CurrentHR = Annotated[User, Depends(require_hr)]
 
 #### **Users Router** (`/api/users`)
 
-| Método | Endpoint | Descripción | Auth | Rol |
-|--------|----------|-------------|------|-----|
-| POST | `/` | Crear usuario | Opcional | - |
-| GET | `/` | Listar usuarios (paginado) | ✅ | HR |
-| GET | `/me` | Ver propio perfil | ✅ | - |
-| GET | `/{id}` | Ver usuario por ID | ✅ | HR o propio |
-| PUT | `/{id}` | Actualizar usuario | ✅ | HR |
-| PATCH | `/me` | Actualizar propio perfil | ✅ | - |
-| POST | `/change-password` | Cambiar contraseña | ✅ | - |
-| DELETE | `/{id}` | Eliminar usuario | ✅ | HR |
+| Método | Endpoint           | Descripción                | Auth     | Rol         |
+| ------ | ------------------ | -------------------------- | -------- | ----------- |
+| POST   | `/`                | Crear usuario              | Opcional | -           |
+| GET    | `/`                | Listar usuarios (paginado) | ✅        | HR          |
+| GET    | `/me`              | Ver propio perfil          | ✅        | -           |
+| GET    | `/{id}`            | Ver usuario por ID         | ✅        | HR o propio |
+| PUT    | `/{id}`            | Actualizar usuario         | ✅        | HR          |
+| PATCH  | `/me`              | Actualizar propio perfil   | ✅        | -           |
+| POST   | `/change-password` | Cambiar contraseña         | ✅        | -           |
+| DELETE | `/{id}`            | Eliminar usuario           | ✅        | HR          |
 
 **Paginación en GET /users:**
 ```
@@ -312,16 +312,16 @@ make migrate    # alembic upgrade head
 
 ### Tabla `user`
 
-| Campo | Tipo | Restricciones |
-|-------|------|---------------|
-| id | INTEGER | PRIMARY KEY |
-| email | VARCHAR | UNIQUE, NOT NULL, INDEX |
-| full_name | VARCHAR | NOT NULL |
-| hashed_password | VARCHAR | NOT NULL |
-| role | VARCHAR(8) | NOT NULL, DEFAULT 'employee' |
-| is_active | BOOLEAN | NOT NULL, DEFAULT true |
-| created_at | DATETIME | NOT NULL, DEFAULT now() |
-| updated_at | DATETIME | NOT NULL, DEFAULT now() |
+| Campo           | Tipo       | Restricciones                |
+| --------------- | ---------- | ---------------------------- |
+| id              | INTEGER    | PRIMARY KEY                  |
+| email           | VARCHAR    | UNIQUE, NOT NULL, INDEX      |
+| full_name       | VARCHAR    | NOT NULL                     |
+| hashed_password | VARCHAR    | NOT NULL                     |
+| role            | VARCHAR(8) | NOT NULL, DEFAULT 'employee' |
+| is_active       | BOOLEAN    | NOT NULL, DEFAULT true       |
+| created_at      | DATETIME   | NOT NULL, DEFAULT now()      |
+| updated_at      | DATETIME   | NOT NULL, DEFAULT now()      |
 
 **Índices:**
 - ✅ PRIMARY KEY en `id`
