@@ -1,91 +1,127 @@
 # 🏢 Sistema de Gestión de Fichajes y RRHH
 
-Backend system for HR and attendance management built with **FastAPI**, **SQLModel**, and **Clean Architecture**.
+Backend REST API para gestión de recursos humanos con **FastAPI**, **SQLModel** y **Clean Architecture**.
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.119-green.svg)](https://fastapi.tiangolo.com/)
-[![SQLModel](https://img.shields.io/badge/SQLModel-0.0.27-orange.svg)](https://sqlmodel.tiangolo.com/)
-[![Ruff](https://img.shields.io/badge/Linter-Ruff-red.svg)](https://docs.astral.sh/ruff/)
+[![Tests](https://img.shields.io/badge/Tests-109%20passing-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-success.svg)]()
 
 ---
 
-## 📋 Características
+## 📋 Funcionalidades
 
-- ✅ **Clean Architecture** con separación de responsabilidades
-- ✅ **Autenticación JWT** con Bearer tokens
-- ✅ **Autorización basada en roles** (RBAC: EMPLOYEE, HR)
-- ✅ **Async/Await** en todas las operaciones de base de datos
-- ✅ **SQLModel ORM** para desarrollo ágil
-- ✅ **Migraciones Alembic** para control de versiones de BD
-- ✅ **Validación con Pydantic** en todos los endpoints
-- ✅ **Documentación automática** con OpenAPI/Swagger
-- ✅ **Linting con Ruff** (10-100x más rápido que Pylint)
-- ✅ **DevContainer** para desarrollo consistente
+### ✅ Módulos Implementados
+
+- **Autenticación JWT** - Login/logout con tokens Bearer
+- **Gestión de Usuarios** - CRUD completo con RBAC (Employee/HR)
+- **Fichajes** - Check-in/check-out, correcciones, estadísticas
+- **Solicitudes de Vacaciones** - Creación, aprobación/rechazo, balance
+
+### 🎯 Características Técnicas
+
+- ✅ Clean Architecture (4 capas: API → Services → Repositories → Models)
+- ✅ SOLID Principles
+- ✅ Async/Await en todas las operaciones
+- ✅ Role-Based Access Control (RBAC)
+- ✅ Validación Pydantic en todos los endpoints
+- ✅ 109 tests unitarios (100% passing)
+- ✅ Documentación OpenAPI/Swagger automática
+- ✅ DevContainer para desarrollo consistente
 
 ---
 
 ## 🚀 Quick Start
 
-### Requisitos
+### Opción 1: DevContainer (Recomendado)
 
-- **Python 3.13+**
-- **uv** package manager (instalado automáticamente en DevContainer)
+1. Abrir en VS Code con Remote Containers
+2. El entorno se configura automáticamente
+3. Servidor iniciado en `http://localhost:8000`
 
-### Desarrollo con DevContainer (Recomendado)
-
-1. Abrir en VS Code con DevContainers
-2. El setup se ejecuta automáticamente
-3. ¡Listo para desarrollar!
+### Opción 2: Setup Manual
 
 ```bash
-# Ver estado del proyecto
-make status
-
-# Ejecutar servidor de desarrollo
-make dev
-
-# Abrir documentación interactiva
-# http://localhost:8000/docs
-```
-
-### Desarrollo Local (Manual)
-
-```bash
-# 1. Instalar uv (si no está instalado)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 2. Clonar repositorio
-git clone <repo-url>
-cd backend
-
-# 3. Instalar dependencias
+# 1. Instalar dependencias
 make install
 
-# 4. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tu SECRET_KEY
-
-# 5. Aplicar migraciones
+# 2. Aplicar migraciones
 make migrate
 
-# 6. Ejecutar servidor
+# 3. Poblar base de datos con datos de ejemplo
+make seed-clear
+
+# 4. Ejecutar servidor
 make dev
+
+# Servidor: http://localhost:8000
+# Docs: http://localhost:8000/docs
 ```
 
 ---
 
-## 📚 Documentación
+## 📚 API Endpoints
 
-### Iteraciones Completadas
+### 🔐 Autenticación (`/api/auth`)
+- `POST /login` - Login con email/password
+- `GET /me` - Perfil del usuario actual
+- `POST /logout` - Cerrar sesión
 
-- 📄 [Iteración 1: Setup del Entorno](docs/Iteracion1.md)
-- 📄 [Iteración 2: Core de la Aplicación](docs/Iteracion2-COMPLETADA.md)
-- 📄 [Iteración 3: Módulo de Usuarios](docs/Iteracion3.md)
+### 👥 Usuarios (`/api/users`)
+- `POST /` - Crear usuario (HR)
+- `GET /` - Listar usuarios con filtros (HR)
+- `GET /me` - Ver mi perfil
+- `PUT /{id}` - Actualizar usuario (HR)
+- `DELETE /{id}` - Eliminar usuario (HR)
+- `POST /change-password` - Cambiar contraseña
 
-### Documentación Adicional
+### ⏰ Fichajes (`/api/fichajes`)
+- `POST /check-in` - Registrar entrada
+- `POST /check-out` - Registrar salida
+- `GET /me` - Mis fichajes con filtros
+- `GET /` - Todos los fichajes (HR)
+- `POST /{id}/request-correction` - Solicitar corrección
+- `POST /{id}/approve` - Aprobar/rechazar corrección (HR)
+- `GET /stats/me` - Mis estadísticas
+- `GET /stats/general` - Estadísticas generales (HR)
 
-- 📄 [Requisitos del Sistema](docs/requisitos.md)
-- 📄 [FastAPI CLI Update](docs/fastapi-cli-update.md)
+### 🏖️ Solicitudes de Vacaciones (`/api/vacaciones`)
+- `POST /` - Crear solicitud
+- `GET /me` - Mis solicitudes con filtros
+- `GET /me/balance` - Mi balance de vacaciones
+- `PUT /{id}` - Actualizar solicitud pendiente
+- `DELETE /{id}` - Cancelar solicitud
+- `GET /pending` - Solicitudes pendientes (HR)
+- `POST /{id}/review` - Aprobar/rechazar (HR)
+- `GET /balance/{user_id}` - Balance de empleado (HR)
+
+**� Documentación completa:** `http://localhost:8000/docs`
+
+---
+
+## 🛠️ Comandos Principales
+
+```bash
+# Desarrollo
+make dev              # Iniciar servidor (auto-reload)
+make init_dev         # Setup completo (install + migrate + seed + dev)
+
+# Base de Datos
+make migrate          # Aplicar migraciones
+make migration        # Crear nueva migración
+make seed             # Poblar BD (con confirmación)
+make seed-clear       # Poblar BD (sin confirmación)
+
+# Tests y Calidad
+make test             # Ejecutar tests (109 tests)
+make lint             # Verificar código con Ruff
+make format           # Formatear código
+
+# Utilidades
+make clean            # Limpiar archivos temporales
+make status           # Verificar estado del entorno
+make help             # Ver todos los comandos
+```
 
 ---
 
@@ -93,128 +129,77 @@ make dev
 
 ```
 app/
-├── main.py                 # FastAPI app entry point
-├── core/                   # Configuración central
-│   ├── config.py          # Pydantic Settings
-│   ├── security.py        # JWT + password hashing
-│   └── exceptions.py      # Custom exceptions
-├── models/                 # SQLModel database models
-│   ├── base.py            # Base model con timestamps
-│   └── user.py            # User model + UserRole enum
-├── schemas/                # Pydantic request/response schemas
-│   └── user.py            # 11 schemas para usuarios
-├── repositories/           # Data access layer
-│   └── user_repository.py # CRUD operations
-├── services/               # Business logic layer
-│   └── user_service.py    # Reglas de negocio + autorización
-├── api/
-│   ├── dependencies/      # Dependency injection
-│   │   └── auth.py        # JWT middleware
-│   └── routers/           # API endpoints
-│       ├── auth.py        # /api/auth
-│       └── users.py       # /api/users
-└── database.py            # AsyncSession setup
+├── main.py                    # FastAPI application
+├── core/                      # Configuración central
+│   ├── config.py             # Settings (Pydantic)
+│   ├── security.py           # JWT + bcrypt
+│   └── exceptions.py         # Custom exceptions
+├── models/                    # SQLModel (DB layer)
+│   ├── user.py               # User + UserRole
+│   ├── fichaje.py            # Fichaje + FichajeStatus
+│   └── solicitud.py          # Solicitud + enums
+├── schemas/                   # Pydantic (API layer)
+│   ├── user.py               # 11 schemas
+│   ├── fichaje.py            # 6 schemas
+│   └── solicitud.py          # 6 schemas
+├── repositories/              # Data access
+│   ├── user_repository.py    # User CRUD
+│   ├── fichaje_repository.py # Fichaje CRUD
+│   └── solicitud_repository.py # Solicitud CRUD
+├── services/                  # Business logic
+│   ├── user_service.py       # User operations + RBAC
+│   ├── fichaje_service.py    # Fichaje operations + rules
+│   └── solicitud_service.py  # Solicitud operations + rules
+└── api/routers/              # API endpoints
+    ├── auth.py               # /api/auth
+    ├── users.py              # /api/users
+    ├── fichajes.py           # /api/fichajes
+    └── vacaciones.py         # /api/vacaciones
 ```
 
 ---
 
-## 🔐 API Endpoints
+## �️ Base de Datos
 
-### Authentication (`/api/auth`)
+### Desarrollo
+- **SQLite** con `aiosqlite` (archivo: `hr_dev.db`)
+- Auto-creación de tablas
+- Migraciones con Alembic
 
-| Método | Endpoint  | Descripción               | Auth |
-| ------ | --------- | ------------------------- | ---- |
-| POST   | `/login`  | Login con email/password  | ❌    |
-| POST   | `/logout` | Logout (client-side)      | ✅    |
-| GET    | `/me`     | Perfil del usuario actual | ✅    |
+### Producción
+- **PostgreSQL** con `asyncpg`
+- Connection pooling
+- Migraciones versionadas
 
-### Users (`/api/users`)
+### Tablas Principales
 
-| Método | Endpoint           | Descripción                | Rol     |
-| ------ | ------------------ | -------------------------- | ------- |
-| POST   | `/`                | Crear usuario              | -       |
-| GET    | `/`                | Listar usuarios (paginado) | HR      |
-| GET    | `/me`              | Ver propio perfil          | -       |
-| GET    | `/{id}`            | Ver usuario por ID         | HR/Self |
-| PUT    | `/{id}`            | Actualizar usuario         | HR      |
-| PATCH  | `/me`              | Actualizar propio perfil   | -       |
-| POST   | `/change-password` | Cambiar contraseña         | -       |
-| DELETE | `/{id}`            | Eliminar usuario           | HR      |
-
-**Documentación interactiva:** http://localhost:8000/docs
-
----
-
-## 🛠️ Comandos Make
-
-```bash
-# Desarrollo
-make dev          # Ejecutar servidor de desarrollo
-make install      # Instalar/actualizar dependencias
-make status       # Ver estado del proyecto
-
-# Base de Datos
-make migration    # Crear nueva migración de Alembic
-make migrate      # Aplicar migraciones pendientes
-make downgrade    # Revertir última migración
-
-# Calidad de Código
-make lint         # Ejecutar Ruff linter
-make format       # Formatear código con Ruff
-make test         # Ejecutar tests con pytest
-
-# Limpieza
-make clean        # Limpiar archivos temporales
-make clean-db     # Eliminar base de datos de desarrollo
-```
+| Tabla        | Descripción                          |
+| ------------ | ------------------------------------ |
+| `user`       | Usuarios (employees + HR)            |
+| `fichaje`    | Registros de entrada/salida          |
+| `solicitud`  | Solicitudes de vacaciones/ausencias  |
 
 ---
 
 ## 🔒 Seguridad
 
-### Password Hashing
-- **bcrypt** via passlib
-- Salt automático
-- Nunca exponer contraseñas hasheadas
+- **Password Hashing:** bcrypt con salt automático
+- **JWT Tokens:** HS256, expiración 15 min
+- **RBAC:** Roles `EMPLOYEE` y `HR`
+- **Autorización:** Dependency injection en endpoints
+- **Validación:** Pydantic en todas las requests
 
-### JWT Tokens
-- **HS256** algorithm
-- Secret key desde `SECRET_KEY` env var
-- Expiración configurable (default: 15 min)
-- Payload: `{"sub": "user_id", "exp": timestamp}`
+### Credenciales de Desarrollo
 
-### Autorización
-- Role-Based Access Control (RBAC)
-- Roles: `EMPLOYEE`, `HR`
-- Dependency injection para verificación
-- HTTPException 403/401 para errores
+```bash
+# HR
+admin@stopcardio.com / admin123
+hr@stopcardio.com / password123
 
----
-
-## 🗄️ Base de Datos
-
-### Desarrollo
-- **SQLite** con `aiosqlite`
-- Archivo: `hr_dev.db`
-- Auto-creación de tablas en modo development
-
-### Producción
-- **PostgreSQL** con `asyncpg`
-- Migraciones con Alembic
-- Connection pooling
-
-### Tabla `user`
-
-| Campo           | Tipo       | Restricciones     |
-| --------------- | ---------- | ----------------- |
-| id              | INTEGER    | PRIMARY KEY       |
-| email           | VARCHAR    | UNIQUE, INDEX     |
-| full_name       | VARCHAR    | NOT NULL          |
-| hashed_password | VARCHAR    | NOT NULL          |
-| role            | VARCHAR(8) | 'employee' o 'hr' |
-| is_active       | BOOLEAN    | DEFAULT true      |
-| created_at      | DATETIME   | AUTO              |
-| updated_at      | DATETIME   | AUTO              |
+# Empleados
+employee1@stopcardio.com / password123
+employee@test.com / password123
+```
 
 ---
 
@@ -227,173 +212,76 @@ make test
 # Tests con cobertura
 uv run pytest --cov=app --cov-report=html
 
-# Tests específicos
-uv run pytest tests/test_users.py -v
-
-# Ver reporte de cobertura
-open htmlcov/index.html
 ```
 
 ---
 
-## 📊 Calidad de Código
+## 📦 Stack Tecnológico
 
-### Linting con Ruff
-
-```bash
-# Verificar código
-make lint
-
-# Auto-corrección
-uv run ruff check --fix .
-
-# Formatear
-make format
-```
-
-**Estado actual:**
-- ✅ 47 de 57 errores corregidos automáticamente
-- ✅ 10 sugerencias de estilo restantes (no críticas)
-- ✅ Código pasa validación de Ruff
-
-### Principios SOLID
-
-- ✅ **Single Responsibility**: Una responsabilidad por clase
-- ✅ **Open/Closed**: Extensible sin modificar código existente
-- ✅ **Liskov Substitution**: Subtipos intercambiables
-- ✅ **Interface Segregation**: Interfaces específicas
-- ✅ **Dependency Inversion**: Depender de abstracciones
+| Categoría     | Tecnología                          | Versión  |
+| ------------- | ----------------------------------- | -------- |
+| Language      | Python                              | 3.13     |
+| Framework     | FastAPI                             | 0.119+   |
+| ORM           | SQLModel                            | 0.0.27+  |
+| DB Dev        | SQLite + aiosqlite                  | -        |
+| DB Prod       | PostgreSQL + asyncpg                | -        |
+| Migrations    | Alembic                             | 1.17+    |
+| Auth          | python-jose + passlib               | 3.5+     |
+| Validation    | Pydantic                            | 2.11+    |
+| Testing       | pytest + httpx                      | 8.4+     |
+| Linter        | Ruff                                | 0.14+    |
+| Package Mgr   | uv (10-100x faster than pip)        | latest   |
 
 ---
 
 ## 🌍 Variables de Entorno
 
 ```env
-# Aplicación
-APP_NAME=Sistema de Gestión de RRHH
-APP_VERSION=0.1.0
-ENV=development
-DEBUG=true
-
-# Base de Datos
+# .env.example
 DATABASE_URL=sqlite+aiosqlite:///./hr_dev.db
-
-# Seguridad
-SECRET_KEY=your-secret-key-change-me-in-production
+SECRET_KEY=change-me-in-production
 ACCESS_TOKEN_EXPIRE_MINUTES=15
-ALGORITHM=HS256
-
-# CORS
+ENV=development
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 ```
 
-**⚠️ IMPORTANTE:** Cambiar `SECRET_KEY` en producción:
-
+**⚠️ Generar SECRET_KEY segura:**
 ```bash
-# Generar secret key segura
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ---
 
-## 📦 Tecnologías
+## Documentación
 
-### Core
-- **FastAPI** 0.119+ - Modern web framework
-- **SQLModel** 0.0.27+ - ORM combining SQLAlchemy + Pydantic
-- **Alembic** 1.17+ - Database migrations
-- **Pydantic Settings** 2.11+ - Configuration management
-
-### Seguridad
-- **python-jose[cryptography]** 3.5+ - JWT tokens
-- **passlib[bcrypt]** 1.7+ - Password hashing
-
-### Desarrollo
-- **uv** - Ultra-fast package manager (10-100x faster than pip)
-- **Ruff** 0.14+ - Linter + formatter (10-100x faster than Pylint)
-- **pytest** 8.4+ - Testing framework
+- 📄 [CHANGELOG.md](CHANGELOG.md) - Historial de versiones
+- 📄 [QUICKSTART.md](QUICKSTART.md) - Guía de inicio rápido
+- 📄 [test_api.http](test_api.http) - 115 requests HTTP de ejemplo
+- 📄 [docs/](docs/) - Documentación de iteraciones
 
 ---
 
-## 🚧 Roadmap
+## 🎯 Reglas de Negocio Implementadas
 
-### Próximas Iteraciones
+### Usuarios (RN-U01 - RN-U07)
+- Validación de email único
+- Password mínimo 8 caracteres
+- Solo HR puede crear/editar/eliminar usuarios
+- Usuarios pueden actualizar su propio perfil
 
-#### Iteración 4: Módulo de Fichajes
-- [ ] Modelo de Fichaje (check-in/check-out)
-- [ ] Registro con timestamps
-- [ ] Corrección de fichajes
-- [ ] Reporte de horas trabajadas
+### Fichajes (RN-F01 - RN-F10)
+- Usuario activo para fichar
+- No duplicar check-in/check-out
+- Timestamps con timezone UTC
+- Solo empleado puede solicitar correcciones
+- Solo HR puede aprobar/rechazar
 
-#### Iteración 5: Módulo de Vacaciones
-- [ ] Modelo de Solicitud
-- [ ] Flujo de aprobación
-- [ ] Balance de días disponibles
-- [ ] Calendario de ausencias
-
-#### Mejoras Técnicas
-- [ ] Refresh tokens
-- [ ] Rate limiting
-- [ ] Logging estructurado
-- [ ] Tests de integración
-- [ ] CI/CD pipeline
-- [ ] Docker para producción
-
----
-
-## 👥 Contribuir
-
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
-
-### Estilo de Código
-
-- Seguir PEP8
-- Usar type hints
-- Documentar funciones con docstrings
-- Pasar `make lint` antes de commit
+### Solicitudes (RN-S01 - RN-S15)
+- Fecha inicio >= fecha actual
+- Fecha fin >= fecha inicio
+- Motivo mínimo 10 caracteres
+- Validación de solapamiento de fechas
+- Control de balance de vacaciones
+- Solo HR puede revisar solicitudes
 
 ---
-
-## 📄 Licencia
-
-Este proyecto es privado y está bajo licencia propietaria.
-
----
-
-## 📞 Soporte
-
-Para dudas o problemas, contactar al equipo de desarrollo.
-
----
-
-**Desarrollado con ❤️ usando FastAPI y Clean Architecture**
-
----
-
-## 📈 Estadísticas del Proyecto
-
-- **Versión:** 0.1.0
-- **Python:** 3.13
-- **Archivos de código:** 30+
-- **Líneas de código:** ~3000
-- **Endpoints:** 11
-- **Modelos:** 1 (User)
-- **Schemas:** 11
-- **Tests:** En desarrollo
-- **Cobertura:** TBD
-- **Estado:** ✅ Iteración 3 completada
-
----
-
-## 🎯 Objetivos del Proyecto
-
-1. ✅ Sistema modular y escalable
-2. ✅ Código limpio y mantenible
-3. ✅ Seguridad robusta
-4. ✅ Documentación completa
-5. 🔄 Tests comprehensivos (en progreso)
-6. 🔄 Despliegue automatizado (planeado)
