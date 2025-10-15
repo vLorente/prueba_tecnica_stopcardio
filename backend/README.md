@@ -4,9 +4,7 @@ Backend REST API para gestión de recursos humanos con **FastAPI**, **SQLModel**
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.119-green.svg)](https://fastapi.tiangolo.com/)
-[![Tests](https://img.shields.io/badge/Tests-109%20passing-brightgreen.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/Coverage-100%25-success.svg)]()
-
+[![SQLModel](https://img.shields.io/badge/SQLModel-0.0.27-orange.svg)](https://sqlmodel.tiangolo.com/)
 ---
 
 ## 📋 Funcionalidades
