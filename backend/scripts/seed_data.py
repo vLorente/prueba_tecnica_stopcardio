@@ -23,6 +23,7 @@ from sqlmodel import select
 from app.core.security import get_password_hash
 from app.database import AsyncSessionLocal, init_db
 from app.models.fichaje import Fichaje, FichajeStatus
+from app.models.solicitud import Solicitud, SolicitudStatus, SolicitudTipo
 from app.models.user import User, UserRole
 
 
@@ -34,6 +35,12 @@ async def clear_database(session) -> None:
         session: Sesión de base de datos
     """
     print("🗑️  Limpiando base de datos...")
+
+    # Eliminar solicitudes (primero por foreign keys)
+    result = await session.execute(select(Solicitud))
+    solicitudes = result.scalars().all()
+    for solicitud in solicitudes:
+        await session.delete(solicitud)
 
     # Eliminar todos los fichajes
     result = await session.execute(select(Fichaje))
@@ -49,7 +56,9 @@ async def clear_database(session) -> None:
         await session.delete(user)
 
     await session.commit()
-    print(f"   ✓ Eliminados {len(fichajes)} fichajes y {len(users)} usuarios existentes")
+    print(
+        f"   ✓ Eliminados {len(solicitudes)} solicitudes, {len(fichajes)} fichajes y {len(users)} usuarios existentes"
+    )
 
 
 async def create_users(session) -> dict[str, User]:
@@ -252,7 +261,7 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
             check_in=wrong_check_in,
             check_out=wrong_check_out,
             status=FichajeStatus.PENDING_CORRECTION,
-            correction_reason="Olvidé fichar a tiempo, llegué a las 9:00",
+            correction_motivo="Olvidé fichar a tiempo, llegué a las 9:00",
             correction_requested_at=now - timedelta(hours=2),
         )
         session.add(pending_fichaje)
@@ -275,7 +284,7 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
             check_in=rejected_check_in,
             check_out=rejected_check_out,
             status=FichajeStatus.REJECTED,
-            correction_reason="Tuve una cita médica",
+            correction_motivo="Tuve una cita médica",
             correction_requested_at=now - timedelta(days=2),
             approval_notes="Necesitas presentar justificante médico",
             approved_at=now - timedelta(days=1),
@@ -292,6 +301,233 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
 
     print(f"\n   ✓ Creados {len(created_fichajes)} fichajes de ejemplo")
     return created_fichajes
+
+
+async def create_solicitudes(session, users: dict[str, User]) -> list[Solicitud]:
+    """
+    Crea solicitudes de vacaciones/ausencias de ejemplo.
+
+    Args:
+        session: Sesión de base de datos
+        users: Diccionario de usuarios creados
+
+    Returns:
+        list: Lista de solicitudes creadas
+    """
+    print("\n🏖️  Creando solicitudes de vacaciones y ausencias...")
+
+    # Obtener empleados y HR
+    employees = [
+        user for user in users.values() if user.role == UserRole.EMPLOYEE and user.is_active
+    ]
+    hr_users = [user for user in users.values() if user.role == UserRole.HR and user.is_active]
+
+    if not employees:
+        print("   ⚠️  No hay empleados activos para crear solicitudes")
+        return []
+
+    if not hr_users:
+        print("   ⚠️  No hay usuarios HR para aprobar solicitudes")
+        return []
+
+    created_solicitudes = []
+    now = datetime.now(tz=UTC)
+    hr_reviewer = hr_users[0]
+
+    # Solicitudes aprobadas (pasadas)
+    print("\n   ✅ Solicitudes aprobadas:")
+    for i, employee in enumerate(employees[:3]):
+        # Vacaciones aprobadas (pasadas)
+        start_date = (now - timedelta(days=30 - i * 5)).date()
+        end_date = (now - timedelta(days=25 - i * 5)).date()
+        dias = (end_date - start_date).days + 1
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.VACATION,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo="Vacaciones de verano planificadas",
+            status=SolicitudStatus.APPROVED,
+            reviewed_by=hr_reviewer.id,  # type: ignore
+            comentarios_revision="Aprobado. Disfruta tus vacaciones.",
+            reviewed_at=now - timedelta(days=28 - i * 5),
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(f"      ✓ {employee.full_name}: Vacaciones {start_date} - {end_date} ({dias} días)")
+
+    # Baja médica aprobada
+    if len(employees) > 1:
+        employee = employees[1]
+        start_date = (now - timedelta(days=10)).date()
+        end_date = (now - timedelta(days=8)).date()
+        dias = (end_date - start_date).days + 1
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.SICK_LEAVE,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo="Gripe con fiebre alta",
+            status=SolicitudStatus.APPROVED,
+            reviewed_by=hr_reviewer.id,  # type: ignore
+            comentarios_revision="Aprobado. Recupérate pronto.",
+            reviewed_at=now - timedelta(days=9),
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(f"      ✓ {employee.full_name}: Baja médica {start_date} - {end_date} (3 días)")
+
+    # Asunto personal aprobado
+    if len(employees) > 2:  # noqa: PLR2004
+        employee = employees[2]
+        personal_date = (now - timedelta(days=5)).date()
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.PERSONAL,
+            fecha_inicio=personal_date,
+            fecha_fin=personal_date,
+            dias_solicitados=1,
+            motivo="Trámites bancarios importantes",
+            status=SolicitudStatus.APPROVED,
+            reviewed_by=hr_reviewer.id,  # type: ignore
+            comentarios_revision="Aprobado.",
+            reviewed_at=now - timedelta(days=4),
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(f"      ✓ {employee.full_name}: Asunto personal {personal_date} (1 día)")
+
+    # Solicitudes pendientes
+    print("\n   ⏳ Solicitudes pendientes de revisión:")
+    for i, employee in enumerate(employees[:4]):
+        start_date = (now + timedelta(days=15 + i * 3)).date()
+        end_date = (now + timedelta(days=18 + i * 3)).date()
+        dias = (end_date - start_date).days + 1
+
+        tipo = [
+            SolicitudTipo.VACATION,
+            SolicitudTipo.PERSONAL,
+            SolicitudTipo.OTHER,
+            SolicitudTipo.SICK_LEAVE,
+        ][i]
+        reasons = [
+            "Visita familiar programada",
+            "Gestión de documentación oficial",
+            "Mudanza de vivienda",
+            "Cita médica especialista",
+        ]
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=tipo,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo=reasons[i],
+            status=SolicitudStatus.PENDING,
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        tipo_emoji = {"vacation": "🏖️", "personal": "📋", "other": "📝", "sick_leave": "🏥"}[
+            tipo.value
+        ]
+        print(f"      {tipo_emoji} {employee.full_name}: {tipo.value} {start_date} - {end_date}")
+
+    # Solicitudes rechazadas
+    print("\n   ❌ Solicitudes rechazadas:")
+    for i, employee in enumerate(employees[:3]):
+        start_date = (now + timedelta(days=7 + i * 2)).date()
+        end_date = (now + timedelta(days=9 + i * 2)).date()
+        dias = (end_date - start_date).days + 1
+
+        reasons_rejected = [
+            "Vacaciones en período de alta demanda",
+            "Necesito tiempo libre urgente",
+            "Asunto personal importante",
+        ]
+        review_comments = [
+            "No se pueden aprobar vacaciones en este período. Ya hay 3 empleados de baja.",
+            "Necesitas solicitar con más antelación. Mínimo 15 días de anticipación.",
+            "Por favor, proporciona más detalles sobre el motivo de la ausencia.",
+        ]
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.VACATION if i == 0 else SolicitudTipo.PERSONAL,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo=reasons_rejected[i],
+            status=SolicitudStatus.REJECTED,
+            reviewed_by=hr_reviewer.id,  # type: ignore
+            comentarios_revision=review_comments[i],
+            reviewed_at=now - timedelta(hours=i + 1),
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(f"      🚫 {employee.full_name}: {solicitud.tipo.value} - {review_comments[i]}")
+
+    # Solicitudes canceladas
+    print("\n   ⚪ Solicitudes canceladas:")
+    for i, employee in enumerate(employees[:2]):
+        start_date = (now + timedelta(days=20 + i * 5)).date()
+        end_date = (now + timedelta(days=22 + i * 5)).date()
+        dias = (end_date - start_date).days + 1
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.VACATION,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo="Vacaciones canceladas por cambio de planes",
+            status=SolicitudStatus.CANCELLED,
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(f"      ⭕ {employee.full_name}: Vacaciones {start_date} - {end_date} (cancelada)")
+
+    # Solicitud futura aprobada
+    if employees:
+        employee = employees[0]
+        start_date = (now + timedelta(days=45)).date()
+        end_date = (now + timedelta(days=50)).date()
+        dias = (end_date - start_date).days + 1
+
+        solicitud = Solicitud(
+            user_id=employee.id,  # type: ignore
+            tipo=SolicitudTipo.VACATION,
+            fecha_inicio=start_date,
+            fecha_fin=end_date,
+            dias_solicitados=dias,
+            motivo="Vacaciones de fin de año",
+            status=SolicitudStatus.APPROVED,
+            reviewed_by=hr_reviewer.id,  # type: ignore
+            comentarios_revision="Aprobado con antelación.",
+            reviewed_at=now,
+        )
+        session.add(solicitud)
+        created_solicitudes.append(solicitud)
+
+        print(
+            f"\n   🎯 Solicitud futura aprobada:\n      ✓ {employee.full_name}: Vacaciones {start_date} - {end_date} (6 días)"
+        )
+
+    await session.commit()
+
+    print(f"\n   ✓ Creadas {len(created_solicitudes)} solicitudes de ejemplo")
+    return created_solicitudes
 
 
 async def seed_database(clear: bool = True) -> None:
@@ -319,6 +555,9 @@ async def seed_database(clear: bool = True) -> None:
 
             # Crear fichajes de ejemplo
             await create_fichajes(session, users)
+
+            # Crear solicitudes de vacaciones
+            await create_solicitudes(session, users)
 
             print("\n" + "=" * 80)
             print("✅ Seed completado exitosamente!")
@@ -355,6 +594,12 @@ async def seed_database(clear: bool = True) -> None:
             print("   - 1 fichaje activo (solo entrada, sin salida)")
             print("   - 1 fichaje pendiente de corrección (esperando aprobación HR)")
             print("   - 1 fichaje rechazado (con motivo de rechazo)")
+            print("\n🏖️  SOLICITUDES DE VACACIONES:")
+            print("   - 5 solicitudes aprobadas (vacaciones, bajas, permisos)")
+            print("   - 4 solicitudes pendientes de revisión")
+            print("   - 3 solicitudes rechazadas con comentarios")
+            print("   - 2 solicitudes canceladas por empleados")
+            print("   - 1 solicitud futura aprobada")
             print("=" * 80)
 
         except Exception as e:
@@ -367,13 +612,31 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Poblar base de datos con datos de prueba")
     parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="Limpiar la base de datos antes de poblarla (sin confirmación)",
+    )
+    parser.add_argument(
         "--no-clear", action="store_true", help="No limpiar la base de datos antes de poblarla"
     )
 
     args = parser.parse_args()
 
-    # Confirmar si se va a limpiar la base de datos
-    if not args.no_clear:
+    # Determinar si se debe limpiar
+    should_clear = False
+
+    if args.clear and args.no_clear:
+        print("❌ Error: No puedes usar --clear y --no-clear al mismo tiempo")
+        return
+
+    if args.clear:
+        # Limpiar sin confirmación
+        should_clear = True
+    elif args.no_clear:
+        # No limpiar
+        should_clear = False
+    else:
+        # Por defecto, preguntar al usuario
         print("\n⚠️  ADVERTENCIA: Este script eliminará todos los datos existentes.")
         response = input("¿Deseas continuar? (s/N): ")
 
@@ -381,7 +644,9 @@ async def main():
             print("❌ Operación cancelada")
             return
 
-    await seed_database(clear=not args.no_clear)
+        should_clear = True
+
+    await seed_database(clear=should_clear)
 
 
 if __name__ == "__main__":

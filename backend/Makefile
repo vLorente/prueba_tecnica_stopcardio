@@ -66,9 +66,13 @@ migrate-down: ## Revertir última migración
 	@echo "⬇️  Revirtiendo migración..."
 	$(ALEMBIC) downgrade -1
 
-seed: ## Ejecutar seed de datos
+seed: ## Ejecutar seed de datos (con confirmación)
 	@echo "🌱 Ejecutando seed..."
 	$(PYTHON) scripts/seed_data.py
+
+seed-clear: ## Ejecutar seed limpiando datos existentes (sin confirmación)
+	@echo "🌱 Ejecutando seed (limpiando datos)..."
+	$(PYTHON) scripts/seed_data.py --clear
 
 seed-no-clear: ## Ejecutar seed sin limpiar datos existentes
 	@echo "🌱 Ejecutando seed (sin limpiar)..."
@@ -97,5 +101,12 @@ shell: ## Abrir shell de Python con contexto de la app
 check: lint format-check test ## Ejecutar todas las verificaciones
 
 all: install migrate dev ## Instalar, migrar y ejecutar
+
+init_dev: ## Inicializar entorno de desarrollo (instalar, migrar, seed y ejecutar)
+	@echo "🚀 Inicializando entorno de desarrollo..."
+	$(MAKE) install
+	$(MAKE) migrate
+	$(MAKE) seed-clear
+	$(MAKE) dev
 
 .DEFAULT_GOAL := help

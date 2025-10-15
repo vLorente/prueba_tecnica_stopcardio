@@ -21,7 +21,7 @@
 	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash scripts/start_enviroment.sh",
+	"postCreateCommand": "make init_dev",
 
 	// Configure tool-specific properties.
 	"customizations": {
