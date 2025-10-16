@@ -80,12 +80,22 @@ class SolicitudRepository:
             solicitud: Solicitud con los cambios a aplicar
 
         Returns:
-            Solicitud: Solicitud actualizada
+            Solicitud: Solicitud actualizada con relaciones cargadas
         """
         self.session.add(solicitud)
         await self.session.flush()
-        await self.session.refresh(solicitud)
-        return solicitud
+        
+        # Recargar con relaciones para evitar lazy loading
+        stmt = (
+            select(Solicitud)
+            .options(
+                selectinload(Solicitud.user),
+                selectinload(Solicitud.reviewed_by_user),
+            )
+            .where(Solicitud.id == solicitud.id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def delete(self, solicitud_id: int) -> bool:
         """

@@ -38,6 +38,7 @@ from app.schemas.solicitud import (
 # RN-V11: Al aprobar, descontar días del balance (si es tipo VACATION)
 # RN-V12: Al rechazar/cancelar, NO descontar días
 # RN-V13: Solicitudes aprobadas no pueden ser modificadas/canceladas
+# RN-V14: Un usuario HR no puede aprobar sus propias solicitudes
 
 
 # ============================================================================
@@ -455,6 +456,7 @@ class SolicitudService:
         Aplica reglas:
         - RN-V10: Solo HR puede revisar (verificado en router)
         - RN-V09: Solo solicitudes PENDING pueden ser revisadas
+        - RN-V14: Un usuario HR no puede aprobar sus propias solicitudes
         - RN-V11: Al aprobar VACATION, descontar días del balance
         - RN-V12: Al rechazar, NO descontar días
 
@@ -483,6 +485,13 @@ class SolicitudService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"No se puede revisar una solicitud con estado {solicitud.status}",
+            )
+
+        # RN-V14: Un usuario HR no puede aprobar sus propias solicitudes
+        if solicitud.user_id == reviewer.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puede aprobar o rechazar sus propias solicitudes",
             )
 
         # Determinar nuevo estado

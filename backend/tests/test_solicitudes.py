@@ -1,15 +1,17 @@
 """Tests para endpoints de solicitudes de vacaciones y ausencias."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import get_password_hash
 from app.models.solicitud import Solicitud, SolicitudStatus, SolicitudTipo
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
+from app.services.solicitud_service import calculate_business_days
 
 
 def get_today():
@@ -110,6 +112,39 @@ async def other_employee_solicitud(
         fecha_fin=today + timedelta(days=20),
         dias_solicitados=1,
         motivo="Asunto personal urgente que requiere atención",
+        status=SolicitudStatus.PENDING,
+    )
+    session.add(solicitud)
+    await session.commit()
+    await session.refresh(solicitud)
+    return solicitud
+
+
+@pytest.fixture
+async def third_employee_solicitud(
+    session: AsyncSession,
+) -> Solicitud:
+    """Create a solicitud for a third employee (different from main employee and HR)."""
+    # Crear un tercer usuario empleado
+    third_user = User(
+        email="third.employee@test.com",
+        full_name="Third Employee",
+        hashed_password=get_password_hash("password123"),
+        role=UserRole.EMPLOYEE,
+        is_active=True,
+    )
+    session.add(third_user)
+    await session.flush()
+
+    # Crear solicitud de este tercer usuario
+    today = get_today()
+    solicitud = Solicitud(
+        user_id=third_user.id,
+        tipo=SolicitudTipo.PERSONAL,
+        fecha_inicio=today + timedelta(days=25),
+        fecha_fin=today + timedelta(days=25),
+        dias_solicitados=1,
+        motivo="Solicitud de un tercer empleado para ser revisada por HR",
         status=SolicitudStatus.PENDING,
     )
     session.add(solicitud)
@@ -617,17 +652,17 @@ class TestReviewSolicitud:
     async def test_hr_approve_solicitud(
         self,
         hr_authenticated_client: AsyncClient,
-        other_employee_solicitud: Solicitud,
+        third_employee_solicitud: Solicitud,
         session: AsyncSession,
     ):
-        """TC-V27: HR aprueba solicitud exitosamente."""
+        """TC-V27: HR aprueba solicitud de otro empleado exitosamente."""
         # Obtener usuario antes para verificar balance
         user_repo = UserRepository(session)
-        user_before = await user_repo.get_by_id(other_employee_solicitud.user_id)
+        user_before = await user_repo.get_by_id(third_employee_solicitud.user_id)
         balance_before = user_before.dias_vacaciones_disponibles if user_before else 0
 
         response = await hr_authenticated_client.post(
-            f"/api/vacaciones/{other_employee_solicitud.id}/review",
+            f"/api/vacaciones/{third_employee_solicitud.id}/review",
             json={
                 "approved": True,
                 "comentarios_revision": "Solicitud aprobada según calendario",
@@ -641,18 +676,18 @@ class TestReviewSolicitud:
         assert data["reviewed_at"] is not None
 
         # Verificar que se descontó del balance si era VACATION
-        if other_employee_solicitud.tipo == SolicitudTipo.VACATION:
+        if third_employee_solicitud.tipo == SolicitudTipo.VACATION:
             await session.refresh(user_before)
             assert user_before.dias_vacaciones_disponibles < balance_before
 
     async def test_hr_reject_solicitud(
         self,
         hr_authenticated_client: AsyncClient,
-        other_employee_solicitud: Solicitud,
+        third_employee_solicitud: Solicitud,
     ):
-        """TC-V28: HR rechaza solicitud exitosamente."""
+        """TC-V28: HR rechaza solicitud de otro empleado exitosamente."""
         response = await hr_authenticated_client.post(
-            f"/api/vacaciones/{other_employee_solicitud.id}/review",
+            f"/api/vacaciones/{third_employee_solicitud.id}/review",
             json={
                 "approved": False,
                 "comentarios_revision": "Conflicto con proyecto crítico",
@@ -695,6 +730,44 @@ class TestReviewSolicitud:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_hr_cannot_review_own_solicitud(
+        self,
+        session: AsyncSession,
+        hr_authenticated_client: AsyncClient,
+        hr_user: User,
+    ):
+        """TC-V31: HR no puede aprobar/rechazar sus propias solicitudes (RN-V14)."""
+        # Crear solicitud del propio usuario HR
+
+        fecha_inicio = date(2025, 11, 10)
+        fecha_fin = date(2025, 11, 14)
+        dias_solicitados = calculate_business_days(fecha_inicio, fecha_fin)
+
+        hr_solicitud = Solicitud(
+            user_id=hr_user.id,
+            tipo=SolicitudTipo.VACATION,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            dias_solicitados=dias_solicitados,
+            motivo="Vacaciones del usuario HR para prueba de auto-aprobación",
+            status=SolicitudStatus.PENDING,
+        )
+        session.add(hr_solicitud)
+        await session.commit()
+        await session.refresh(hr_solicitud)
+
+        # Intentar que HR apruebe su propia solicitud
+        response = await hr_authenticated_client.post(
+            f"/api/vacaciones/{hr_solicitud.id}/review",
+            json={
+                "approved": True,
+                "comentarios_revision": "Intentando auto-aprobar mi solicitud",
+            },
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "propias solicitudes" in response.json()["detail"].lower()
 
 
 class TestVacationBalance:
