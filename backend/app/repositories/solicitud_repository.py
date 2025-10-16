@@ -295,7 +295,7 @@ class SolicitudRepository:
             stmt = stmt.where(Solicitud.id != exclude_id)
 
         result = await self.session.execute(stmt)
-        conflicting_solicitud = result.scalar_one_or_none()
+        conflicting_solicitud = result.first()
 
         return conflicting_solicitud is not None
 
