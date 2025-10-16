@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal, computed } from '@angular/core';
 import { FichajesComponent } from './fichajes.component';
-import { FichajesService } from './fichajes.service';
+import { FichajesService } from './services/fichajes.service';
 import type { Fichaje } from '@core/models/fichaje.model';
 
 describe('FichajesComponent', () => {

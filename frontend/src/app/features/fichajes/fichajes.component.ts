@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FichajesService } from './fichajes.service';
+import { FichajesService } from './services/fichajes.service';
 import type { Fichaje } from '@core/models/fichaje.model';
 
 /**

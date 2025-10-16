@@ -33,3 +33,20 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Testing Best Practices
+- Use `fakeAsync` and `tick()` for testing asynchronous operations
+- Wrap all async test functions with `fakeAsync` when testing promises or observables
+- Use `tick()` to advance the virtual clock and resolve pending promises
+- Use `tick(milliseconds)` to simulate specific time delays
+- Mock services using writable signals for better control in tests
+- Create signal-based mocks with both readonly and writable versions
+- Example pattern:
+  ```typescript
+  it('should test async operation', fakeAsync(async () => {
+    const promise = service.asyncMethod();
+    tick(); // Advance clock to resolve promise
+    const result = await promise;
+    expect(result).toBeDefined();
+  }));
+  ```

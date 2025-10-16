@@ -1,0 +1,284 @@
+<div class="vacaciones-container">
+  <!-- Error Message -->
+  @if (error(); as errorMsg) {
+    <div class="alert alert-error">
+      <span>{{ errorMsg }}</span>
+      <button (click)="onCloseError()" class="btn-close" aria-label="Cerrar">×</button>
+    </div>
+  }
+
+  <!-- Balance Section -->
+  @if (balance(); as bal) {
+    <div class="balance-section">
+      <div class="balance-header">
+        <h2>Balance de Vacaciones</h2>
+        <div class="user-info">
+          <span class="user-name">{{ bal.userFullName }}</span>
+          <span class="user-email">{{ bal.userEmail }}</span>
+        </div>
+      </div>
+
+      <div class="balance-cards">
+        <div class="balance-card balance-primary">
+          <div class="card-icon">📅</div>
+          <div class="card-content">
+            <span class="card-label">Días anuales</span>
+            <span class="card-value">{{ bal.diasAnuales }}</span>
+          </div>
+        </div>
+
+        <div class="balance-card balance-success">
+          <div class="card-icon">✓</div>
+          <div class="card-content">
+            <span class="card-label">Días disponibles</span>
+            <span class="card-value">{{ bal.diasDisponibles }}</span>
+          </div>
+        </div>
+
+        <div class="balance-card balance-info">
+          <div class="card-icon">⏳</div>
+          <div class="card-content">
+            <span class="card-label">Días tomados</span>
+            <span class="card-value">{{ bal.diasTomados }}</span>
+          </div>
+        </div>
+
+        <div class="balance-card balance-warning">
+          <div class="card-icon">⏱️</div>
+          <div class="card-content">
+            <span class="card-label">Días pendientes</span>
+            <span class="card-value">{{ bal.diasPendientes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="balance-progress">
+        <div class="progress-header">
+          <span>Uso de vacaciones</span>
+          <span class="progress-percentage">{{ getUsagePercentage() }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [ngClass]="getProgressClass()"
+            [style.width.%]="getUsagePercentage()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="balance-stats">
+        <div class="stat-item">
+          <span class="stat-label">Solicitudes pendientes:</span>
+          <span class="stat-value">{{ bal.solicitudesPendientes }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Solicitudes aprobadas:</span>
+          <span class="stat-value">{{ bal.solicitudesAprobadas }}</span>
+        </div>
+        @if (bal.proximoPeriodo) {
+          <div class="stat-item">
+            <span class="stat-label">Próximo periodo:</span>
+            <span class="stat-value">{{ bal.proximoPeriodo | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Nueva Solicitud Section -->
+  <div class="solicitud-section">
+    <div class="section-header">
+      <h2>Nueva Solicitud</h2>
+      <button
+        (click)="toggleForm()"
+        [disabled]="loading()"
+        class="btn btn-toggle">
+        {{ showForm() ? 'Cancelar' : '+ Nueva Solicitud' }}
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    @if (showForm()) {
+      <form [formGroup]="vacacionForm" (ngSubmit)="onSubmit()" class="vacacion-form">
+        <div class="form-group">
+          <label for="tipo">Tipo de solicitud *</label>
+          <select
+            id="tipo"
+            formControlName="tipo"
+            class="form-control">
+            @for (tipoOption of tipoOptions; track tipoOption) {
+              <option [value]="tipoOption">{{ tipoLabels[tipoOption] }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fechaInicio">Fecha de inicio *</label>
+            <input
+              id="fechaInicio"
+              type="date"
+              formControlName="fechaInicio"
+              class="form-control"
+              [class.invalid]="vacacionForm.get('fechaInicio')?.invalid && vacacionForm.get('fechaInicio')?.touched">
+            @if (vacacionForm.get('fechaInicio')?.invalid && vacacionForm.get('fechaInicio')?.touched) {
+              <span class="error-message">La fecha de inicio es requerida</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="fechaFin">Fecha de fin *</label>
+            <input
+              id="fechaFin"
+              type="date"
+              formControlName="fechaFin"
+              class="form-control"
+              [class.invalid]="vacacionForm.get('fechaFin')?.invalid && vacacionForm.get('fechaFin')?.touched">
+            @if (vacacionForm.get('fechaFin')?.invalid && vacacionForm.get('fechaFin')?.touched) {
+              <span class="error-message">La fecha de fin es requerida</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="motivo">Motivo *</label>
+          <textarea
+            id="motivo"
+            formControlName="motivo"
+            class="form-control"
+            rows="4"
+            minlength="10"
+            maxlength="1000"
+            placeholder="Describe el motivo de tu solicitud (mínimo 10 caracteres)..."></textarea>
+          @if (vacacionForm.get('motivo')?.invalid && vacacionForm.get('motivo')?.touched) {
+            @if (vacacionForm.get('motivo')?.errors?.['required']) {
+              <span class="error-message">El motivo es requerido</span>
+            }
+            @if (vacacionForm.get('motivo')?.errors?.['minlength']) {
+              <span class="error-message">El motivo debe tener al menos 10 caracteres</span>
+            }
+          }
+          @if (vacacionForm.get('motivo')?.value) {
+            <span class="char-count">
+              {{ vacacionForm.get('motivo')?.value.length }}/1000
+            </span>
+          }
+        </div>        <div class="form-actions">
+          <button
+            type="button"
+            (click)="toggleForm()"
+            class="btn btn-secondary"
+            [disabled]="submitting()">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="vacacionForm.invalid || submitting()">
+            @if (submitting()) {
+              <span class="spinner"></span>
+            }
+            Enviar Solicitud
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+
+  <!-- Historial Section -->
+  <div class="historial-section">
+    <h2>Historial de Solicitudes</h2>
+
+    <!-- Loading State -->
+    @if (loading() && vacaciones().length === 0) {
+      <div class="loading-state">
+        <div class="spinner-large"></div>
+        <p>Cargando solicitudes...</p>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading() && vacaciones().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🏖️</div>
+        <h3>No hay solicitudes registradas</h3>
+        <p>Comienza creando tu primera solicitud de vacaciones</p>
+      </div>
+    }
+
+    <!-- Vacaciones Table -->
+    @if (vacaciones().length > 0) {
+      <div class="vacaciones-table-container">
+        <table class="vacaciones-table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fecha inicio</th>
+              <th>Fecha fin</th>
+              <th>Días</th>
+              <th>Estado</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (vacacion of vacaciones(); track vacacion.id) {
+              <tr>
+                <td>
+                  <span class="tipo-badge">
+                    {{ tipoLabels[vacacion.tipo] }}
+                  </span>
+                </td>
+                <td>
+                  <span class="date-cell">
+                    {{ vacacion.fechaInicio | date: 'dd/MM/yyyy' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="date-cell">
+                    {{ vacacion.fechaFin | date: 'dd/MM/yyyy' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="days-cell">{{ vacacion.diasSolicitados }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="getEstadoClass(vacacion)">
+                    {{ estadoLabels[vacacion.status] }}
+                  </span>
+                </td>
+                <td>
+                  <span class="descripcion-cell" [title]="vacacion.motivo">
+                    {{ vacacion.motivo }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button
+          (click)="onPreviousPage()"
+          [disabled]="!hasPrevPage() || loading()"
+          class="btn btn-pagination">
+          ← Anterior
+        </button>
+
+        <span class="pagination-info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </span>
+
+        <button
+          (click)="onNextPage()"
+          [disabled]="!hasNextPage() || loading()"
+          class="btn btn-pagination">
+          Siguiente →
+        </button>
+      </div>
+    }
+  </div>
+</div>
