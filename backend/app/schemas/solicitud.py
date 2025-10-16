@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from app.models.solicitud import SolicitudStatus, SolicitudTipo
 
@@ -91,6 +91,17 @@ class SolicitudResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("reviewed_at", "created_at", "updated_at")
+    def serialize_datetime(self, dt: datetime | None, _info) -> str | None:
+        """Serializa datetime a ISO 8601 con sufijo Z (UTC)."""
+        if dt is None:
+            return None
+        # Convertir a UTC si tiene timezone y formatear con Z
+        if dt.tzinfo is not None:
+            return dt.isoformat().replace("+00:00", "Z")
+        # Si no tiene timezone, asumir UTC y agregar Z
+        return f"{dt.isoformat()}Z"
 
 
 class SolicitudListResponse(BaseModel):

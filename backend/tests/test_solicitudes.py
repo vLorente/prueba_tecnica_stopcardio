@@ -476,18 +476,29 @@ class TestUpdateSolicitud:
         employee_solicitud_pending: Solicitud,
     ):
         """TC-V20: Actualizar fechas de solicitud pendiente."""
+        # Encontrar próximo lunes para garantizar fechas predecibles
         today = get_today()
+        days_until_monday = (7 - today.weekday()) % 7
+        if days_until_monday == 0:
+            days_until_monday = 7
+        next_monday = today + timedelta(days=days_until_monday + 14)  # Lunes en 2+ semanas
+
+        # Lunes a Jueves = 4 días hábiles
+        fecha_inicio = next_monday
+        fecha_fin = next_monday + timedelta(days=3)  # Lunes + 3 = Jueves
+        expected_days = 4
+
         response = await authenticated_client.put(
             f"/api/vacaciones/{employee_solicitud_pending.id}",
             json={
-                "fecha_inicio": str(today + timedelta(days=20)),
-                "fecha_fin": str(today + timedelta(days=23)),
+                "fecha_inicio": str(fecha_inicio),
+                "fecha_fin": str(fecha_fin),
             },
         )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["dias_solicitados"] == 4  # Recalculado
+        assert data["dias_solicitados"] == expected_days  # Recalculado
 
     async def test_update_solicitud_already_approved(
         self,
