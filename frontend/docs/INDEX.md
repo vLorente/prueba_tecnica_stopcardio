@@ -96,7 +96,7 @@ En esta carpeta encontrarás un resumen por iteración (0-6) con objetivos, arte
 - Best practices específicas del proyecto
 
 ### Paso 4: Familiarizarse con la API
-👉 [API.md](./API.md)
+👉 [API](./openapi.json)
 - Revisar endpoints disponibles
 - Entender estructura de peticiones/respuestas
 - Conocer códigos de error
@@ -155,25 +155,6 @@ Desarrollar el frontend de un sistema de gestión de fichajes y RRHH que permita
 ### Repositorio
 - Frontend: `/workspaces/prueba_tecnica_stopcardio/frontend/`
 - Backend: `/workspaces/prueba_tecnica_stopcardio/backend/`
-
-## 📝 Checklist de Desarrollo
-
-### Setup ✅
-- [x] Entorno configurado
-- [x] Dependencias instaladas
-- [x] Chrome instalado para tests
-- [x] Documentación creada
-
-### Próximos Pasos
-- [ ] Leer toda la documentación
-- [ ] Configurar estructura base (Iteración 1)
-- [ ] Implementar autenticación
-- [ ] Crear servicio de API
-- [ ] Implementar módulo de fichajes
-- [ ] Implementar módulo de vacaciones
-- [ ] Crear dashboard
-- [ ] Implementar funciones de RRHH
-- [ ] Tests y documentación final
 
 ## 🎓 Principios del Proyecto
 

@@ -1,0 +1,56 @@
+/* RRHH Dashboard Container */
+.rrhh-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Header Section */
+.dashboard-header {
+  margin-bottom: 40px;
+}
+
+.header-content {
+  text-align: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #718096;
+  margin: 0;
+}
+
+/* Features Grid */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .rrhh-dashboard {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+

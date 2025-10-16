@@ -25,10 +25,11 @@
           </a>
           @if (authService.isHR()) {
             <a
-              routerLink="/usuarios"
+              routerLink="/rrhh"
               routerLinkActive="active"
+              [routerLinkActiveOptions]="{exact: false}"
               class="nav-link">
-              Usuarios
+              Administración RRHH
             </a>
           }
         </nav>

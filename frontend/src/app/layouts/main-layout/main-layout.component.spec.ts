@@ -97,7 +97,7 @@ describe('MainLayoutComponent', () => {
     expect(linkTexts).toContain('Vacaciones');
   });
 
-  it('should show Usuarios link for HR users', () => {
+  it('should show Administración RRHH link for HR users', () => {
     // Update mock to HR user
     const fullNameSignal = signal('HR User');
     const isHRSignal = signal(true);
@@ -114,14 +114,14 @@ describe('MainLayoutComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navLinks = compiled.querySelectorAll('.nav-link');
     const linkTexts = Array.from(navLinks).map(link => link.textContent?.trim());
-    expect(linkTexts).toContain('Usuarios');
+    expect(linkTexts).toContain('Administración RRHH');
   });
 
-  it('should not show Usuarios link for employee users', () => {
+  it('should not show Administración RRHH link for employee users', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navLinks = compiled.querySelectorAll('.nav-link');
     const linkTexts = Array.from(navLinks).map(link => link.textContent?.trim());
-    expect(linkTexts).not.toContain('Usuarios');
+    expect(linkTexts).not.toContain('Administración RRHH');
   });
 
   it('should display logout button', () => {

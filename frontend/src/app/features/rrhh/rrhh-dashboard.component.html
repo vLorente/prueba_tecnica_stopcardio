@@ -1,0 +1,23 @@
+<div class="rrhh-dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1 class="title">Administración RRHH</h1>
+      <p class="subtitle">Panel de control para gestión de recursos humanos</p>
+    </div>
+  </header>
+
+  <!-- Features Grid -->
+  <div class="features-grid">
+    @for (feature of features; track feature.title) {
+      <app-dashboard-card
+        [title]="feature.title"
+        [description]="feature.description"
+        [icon]="feature.icon"
+        [route]="feature.route"
+        [color]="feature.color"
+        [showArrow]="false"
+      />
+    }
+  </div>
+</div>

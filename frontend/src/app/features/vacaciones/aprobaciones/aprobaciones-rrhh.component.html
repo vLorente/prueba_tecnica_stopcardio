@@ -1,0 +1,299 @@
+<div class="aprobaciones-container">
+  <div class="header">
+    <h2>Aprobaciones de Vacaciones - RRHH</h2>
+    <p class="subtitle">Gestiona las solicitudes de vacaciones de todos los empleados</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  @if (error()) {
+    <div class="error-message">
+      <span>{{ error() }}</span>
+      <button type="button" (click)="clearError()" class="btn-close">×</button>
+    </div>
+  }
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="filter-status">Estado:</label>
+        <select
+          id="filter-status"
+          [value]="filterStatus()"
+          (change)="onFilterStatusChange($any($event.target).value)"
+          class="filter-select">
+          <option value="">Todos</option>
+          <option value="pending">Pendientes</option>
+          <option value="approved">Aprobadas</option>
+          <option value="rejected">Rechazadas</option>
+          <option value="cancelled">Canceladas</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-tipo">Tipo:</label>
+        <select
+          id="filter-tipo"
+          [value]="filterTipo()"
+          (change)="onFilterTipoChange($any($event.target).value)"
+          class="filter-select">
+          <option value="">Todos</option>
+          <option value="vacation">Vacaciones</option>
+          <option value="sick_leave">Baja Médica</option>
+          <option value="personal">Asunto Personal</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de carga -->
+  @if (loading()) {
+    <div class="loading-indicator">
+      <div class="spinner"></div>
+      <span>Cargando solicitudes...</span>
+    </div>
+  }
+
+  <!-- Tabla de solicitudes -->
+  @if (!loading()) {
+    <div class="table-container">
+      @if (solicitudes().length === 0) {
+        <div class="empty-state">
+          <p>No hay solicitudes con los filtros aplicados</p>
+        </div>
+      } @else {
+        <table class="solicitudes-table">
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Tipo</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Días</th>
+              <th>Estado</th>
+              <th>Motivo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (solicitud of solicitudes(); track solicitud.id) {
+              <tr>
+                <td>
+                  <div class="employee-info">
+                    <span class="employee-name">{{ solicitud.userFullName }}</span>
+                    <span class="employee-email">{{ solicitud.userEmail }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="tipo-badge" [ngClass]="getTipoClass(solicitud.tipo)">
+                    {{ tipoLabels[solicitud.tipo] }}
+                  </span>
+                </td>
+                <td>{{ solicitud.fechaInicio | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ solicitud.fechaFin | date: 'dd/MM/yyyy' }}</td>
+                <td class="text-center">{{ solicitud.diasSolicitados }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getEstadoClass(solicitud)">
+                    {{ estadoLabels[solicitud.status] }}
+                  </span>
+                </td>
+                <td>
+                  <span class="motivo-text" [title]="solicitud.motivo">
+                    {{ solicitud.motivo }}
+                  </span>
+                </td>
+                <td>
+                  @if (canReview(solicitud)) {
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        (click)="openApprovalModal(solicitud)"
+                        class="btn btn-approve"
+                        [disabled]="submitting()">
+                        ✓ Aprobar
+                      </button>
+                      <button
+                        type="button"
+                        (click)="openRejectionModal(solicitud)"
+                        class="btn btn-reject"
+                        [disabled]="submitting()">
+                        ✗ Rechazar
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="reviewed-info">
+                      @if (solicitud.reviewedByName) {
+                        <span class="reviewed-by">{{ solicitud.reviewedByName }}</span>
+                      }
+                      @if (solicitud.reviewedAt) {
+                        <span class="reviewed-date">{{ solicitud.reviewedAt | date: 'dd/MM/yyyy' }}</span>
+                      }
+                      @if (solicitud.comentariosRevision) {
+                        <span class="review-comments" [title]="solicitud.comentariosRevision">
+                          💬
+                        </span>
+                      }
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Paginación -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          type="button"
+          (click)="onPreviousPage()"
+          [disabled]="currentPage() === 1 || loading()"
+          class="btn btn-pagination">
+          ← Anterior
+        </button>
+        <span class="page-info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </span>
+        <button
+          type="button"
+          (click)="onNextPage()"
+          [disabled]="currentPage() === totalPages() || loading()"
+          class="btn btn-pagination">
+          Siguiente →
+        </button>
+      </div>
+    }
+  }
+
+  <!-- Modal de Aprobación -->
+  @if (showApprovalModal()) {
+    <div class="modal-overlay" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Aprobar Solicitud</h3>
+          <button type="button" (click)="closeModals()" class="btn-close">×</button>
+        </div>
+
+        <div class="modal-body">
+          @if (selectedSolicitud(); as solicitud) {
+            <div class="solicitud-details">
+              <p><strong>Empleado:</strong> {{ solicitud.userFullName }}</p>
+              <p><strong>Tipo:</strong> {{ tipoLabels[solicitud.tipo] }}</p>
+              <p><strong>Fechas:</strong> {{ solicitud.fechaInicio | date: 'dd/MM/yyyy' }} - {{ solicitud.fechaFin | date: 'dd/MM/yyyy' }}</p>
+              <p><strong>Días solicitados:</strong> {{ solicitud.diasSolicitados }}</p>
+              <p><strong>Motivo:</strong> {{ solicitud.motivo }}</p>
+            </div>
+
+            <form [formGroup]="approvalForm">
+              <div class="form-group">
+                <label for="approval-comentarios">Comentarios (opcional):</label>
+                <textarea
+                  id="approval-comentarios"
+                  formControlName="comentarios"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Añade comentarios si es necesario..."></textarea>
+                <span class="char-count">
+                  {{ approvalForm.get('comentarios')?.value?.length || 0 }}/500
+                </span>
+              </div>
+            </form>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            (click)="closeModals()"
+            class="btn btn-cancel"
+            [disabled]="submitting()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="onApprove()"
+            class="btn btn-approve"
+            [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner-small"></span>
+              Aprobando...
+            } @else {
+              Confirmar Aprobación
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Rechazo -->
+  @if (showRejectionModal()) {
+    <div class="modal-overlay" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Rechazar Solicitud</h3>
+          <button type="button" (click)="closeModals()" class="btn-close">×</button>
+        </div>
+
+        <div class="modal-body">
+          @if (selectedSolicitud(); as solicitud) {
+            <div class="solicitud-details">
+              <p><strong>Empleado:</strong> {{ solicitud.userFullName }}</p>
+              <p><strong>Tipo:</strong> {{ tipoLabels[solicitud.tipo] }}</p>
+              <p><strong>Fechas:</strong> {{ solicitud.fechaInicio | date: 'dd/MM/yyyy' }} - {{ solicitud.fechaFin | date: 'dd/MM/yyyy' }}</p>
+              <p><strong>Días solicitados:</strong> {{ solicitud.diasSolicitados }}</p>
+              <p><strong>Motivo:</strong> {{ solicitud.motivo }}</p>
+            </div>
+
+            <form [formGroup]="rejectionForm">
+              <div class="form-group">
+                <label for="rejection-comentarios">Motivo del rechazo *:</label>
+                <textarea
+                  id="rejection-comentarios"
+                  formControlName="comentarios"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Explica el motivo del rechazo..."></textarea>
+
+                @if (rejectionForm.get('comentarios')?.invalid && rejectionForm.get('comentarios')?.touched) {
+                  @if (rejectionForm.get('comentarios')?.errors?.['required']) {
+                    <span class="error-message">El motivo del rechazo es requerido</span>
+                  }
+                }
+
+                <span class="char-count">
+                  {{ rejectionForm.get('comentarios')?.value?.length || 0 }}/500
+                </span>
+              </div>
+            </form>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            (click)="closeModals()"
+            class="btn btn-cancel"
+            [disabled]="submitting()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="onReject()"
+            class="btn btn-reject"
+            [disabled]="rejectionForm.invalid || submitting()">
+            @if (submitting()) {
+              <span class="spinner-small"></span>
+              Rechazando...
+            } @else {
+              Confirmar Rechazo
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

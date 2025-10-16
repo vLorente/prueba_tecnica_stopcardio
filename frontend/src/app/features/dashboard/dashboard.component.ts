@@ -1,7 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
+import { DashboardCardComponent } from '@shared/components/dashboard-card/dashboard-card.component';
 
 /**
  * Dashboard Component
@@ -9,7 +9,7 @@ import { AuthService } from '@core/services/auth.service';
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, DashboardCardComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

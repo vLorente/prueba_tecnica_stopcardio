@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { VacacionesService } from './vacaciones.service';
@@ -239,11 +239,15 @@ describe('VacacionesService', () => {
     it('should not navigate to invalid page', async () => {
       service['totalSignal'].set(10);
       service['pageSizeSignal'].set(10);
+      service['currentPageSignal'].set(1);
 
       await service.goToPage(5); // Out of range
 
       // Should not make HTTP request
       httpMock.expectNone((r) => r.url.includes('/vacaciones/me'));
+
+      // Page should remain unchanged
+      expect(service.currentPage()).toBe(1);
     });
   });
 
@@ -293,6 +297,266 @@ describe('VacacionesService', () => {
 
       service.clearError();
       expect(service.error()).toBeNull();
+    });
+  });
+
+  // ============================================================================
+  // TESTS MÉTODOS HR
+  // ============================================================================
+
+  describe('HR Methods', () => {
+    describe('loadAllSolicitudes', () => {
+      it('should load all solicitudes with filters (HR)', fakeAsync(async () => {
+        const loadPromise = service.loadAllSolicitudes({
+          status: 'pending',
+          user_id: 2
+        });
+
+        const req = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones') &&
+          !r.url.includes('/me') &&
+          !r.url.includes('/pending') &&
+          r.params.get('status') === 'pending' &&
+          r.params.get('user_id') === '2'
+        );
+        expect(req.request.method).toBe('GET');
+
+        req.flush(mockVacacionListApi);
+        tick();
+
+        await loadPromise;
+
+        expect(service.allSolicitudes()).toEqual([
+          jasmine.objectContaining({
+            id: 1,
+            tipo: 'vacation',
+            status: 'pending'
+          })
+        ]);
+        expect(service.hrTotal()).toBe(1);
+      }));
+
+      it('should handle errors when loading all solicitudes', async () => {
+        const loadPromise = service.loadAllSolicitudes();
+
+        const req = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones') &&
+          !r.url.includes('/me') &&
+          !r.url.includes('/pending')
+        );
+
+        req.flush({ error: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
+
+        await expectAsync(loadPromise).toBeRejected();
+        expect(service.error()).toBeTruthy();
+      });
+    });
+
+    describe('loadPendingSolicitudes', () => {
+      it('should load only pending solicitudes (HR)', fakeAsync(async () => {
+        const loadPromise = service.loadPendingSolicitudes();
+
+        const req = httpMock.expectOne((r) => r.url.includes('/vacaciones/pending'));
+        expect(req.request.method).toBe('GET');
+
+        req.flush(mockVacacionListApi);
+        tick();
+
+        await loadPromise;
+
+        expect(service.pendingSolicitudes()).toEqual([
+          jasmine.objectContaining({
+            id: 1,
+            status: 'pending',
+            isPending: true
+          })
+        ]);
+        expect(service.hasPendingSolicitudes()).toBe(true);
+        expect(service.pendingCount()).toBe(1);
+      }));
+    });
+
+    describe('reviewSolicitud', () => {
+      it('should approve solicitud successfully (HR)', fakeAsync(async () => {
+        const approvedVacacionApi: VacacionApi = {
+          ...mockVacacionApi,
+          status: 'approved',
+          is_approved: true,
+          is_pending: false,
+          reviewed_by: 3,
+          reviewed_by_name: 'HR Manager',
+          reviewed_at: '2025-10-16T12:00:00Z',
+          comentarios_revision: 'Aprobado'
+        };
+
+        const review = {
+          approved: true,
+          comentariosRevision: 'Aprobado'
+        };
+
+        const reviewPromise = service.reviewSolicitud(1, review);
+
+        const reviewReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones/1/review')
+        );
+        expect(reviewReq.request.method).toBe('POST');
+        expect(reviewReq.request.body).toEqual({
+          approved: true,
+          comentarios_revision: 'Aprobado'
+        });
+
+        reviewReq.flush(approvedVacacionApi);
+        tick();
+
+        // Expect auto-reload
+        const allReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones') &&
+          !r.url.includes('/me') &&
+          !r.url.includes('/pending')
+        );
+        allReq.flush(mockVacacionListApi);
+
+        const pendingReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones/pending')
+        );
+        pendingReq.flush({ ...mockVacacionListApi, solicitudes: [] });
+
+        tick();
+
+        const result = await reviewPromise;
+
+        expect(result.status).toBe('approved');
+        expect(result.isApproved).toBe(true);
+        expect(result.comentariosRevision).toBe('Aprobado');
+      }));
+
+      it('should reject solicitud with comments (HR)', fakeAsync(async () => {
+        const rejectedVacacionApi: VacacionApi = {
+          ...mockVacacionApi,
+          status: 'rejected',
+          is_approved: false,
+          is_pending: false,
+          reviewed_by: 3,
+          reviewed_by_name: 'HR Manager',
+          reviewed_at: '2025-10-16T12:00:00Z',
+          comentarios_revision: 'Rechazado por falta de disponibilidad'
+        };
+
+        const review = {
+          approved: false,
+          comentariosRevision: 'Rechazado por falta de disponibilidad'
+        };
+
+        const reviewPromise = service.reviewSolicitud(1, review);
+
+        const reviewReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones/1/review')
+        );
+        expect(reviewReq.request.body.approved).toBe(false);
+        expect(reviewReq.request.body.comentarios_revision).toBe('Rechazado por falta de disponibilidad');
+
+        reviewReq.flush(rejectedVacacionApi);
+        tick();
+
+        // Expect auto-reload
+        const allReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones') &&
+          !r.url.includes('/me') &&
+          !r.url.includes('/pending')
+        );
+        allReq.flush(mockVacacionListApi);
+
+        const pendingReq = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones/pending')
+        );
+        pendingReq.flush({ ...mockVacacionListApi, solicitudes: [] });
+
+        tick();
+
+        const result = await reviewPromise;
+
+        expect(result.status).toBe('rejected');
+        expect(result.comentariosRevision).toBe('Rechazado por falta de disponibilidad');
+      }));
+    });
+
+    describe('loadUserBalance', () => {
+      it('should load balance for any user (HR)', fakeAsync(async () => {
+        const userBalanceApi: VacacionBalanceApi = {
+          ...mockBalanceApi,
+          user_id: 5,
+          user_email: 'employee@example.com',
+          user_full_name: 'Employee Name'
+        };
+
+        const loadPromise = service.loadUserBalance(5);
+
+        const req = httpMock.expectOne((r) => r.url.includes('/vacaciones/balance/5'));
+        expect(req.request.method).toBe('GET');
+
+        req.flush(userBalanceApi);
+        tick();
+
+        await loadPromise;
+
+        expect(service.userBalance()).toEqual(
+          jasmine.objectContaining({
+            userId: 5,
+            userEmail: 'employee@example.com',
+            userFullName: 'Employee Name'
+          })
+        );
+      }));
+    });
+
+    describe('goToHrPage', () => {
+      it('should navigate to specific HR page', fakeAsync(async () => {
+        // Setup initial state
+        service['hrTotalSignal'].set(25);
+        service['hrPageSizeSignal'].set(10);
+        service['hrCurrentPageSignal'].set(1);
+
+        const goToPagePromise = service.goToHrPage(2);
+
+        const req = httpMock.expectOne((r) =>
+          r.url.includes('/vacaciones') &&
+          !r.url.includes('/me') &&
+          !r.url.includes('/pending') &&
+          r.params.get('skip') === '10' &&
+          r.params.get('limit') === '10'
+        );
+
+        // Simular respuesta del backend con skip=10, limit=10
+        const response = {
+          ...mockVacacionListApi,
+          skip: 10,
+          limit: 10
+        };
+
+        req.flush(response);
+        tick();
+
+        await goToPagePromise;
+
+        expect(service.hrCurrentPage()).toBe(2);
+      }));
+
+      it('should not navigate to invalid page', fakeAsync(async () => {
+        service['hrTotalSignal'].set(10);
+        service['hrPageSizeSignal'].set(10);
+        service['hrCurrentPageSignal'].set(1);
+
+        const goToPagePromise = service.goToHrPage(5); // Invalid, only 1 page
+        tick();
+
+        await goToPagePromise;
+
+        // No debe hacer ninguna petición HTTP
+        httpMock.expectNone((r) => r.url.includes('/vacaciones'));
+
+        // La página no debe cambiar
+        expect(service.hrCurrentPage()).toBe(1);
+      }));
     });
   });
 });

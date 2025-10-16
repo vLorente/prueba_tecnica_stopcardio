@@ -13,7 +13,9 @@ import type {
   VacacionBalance,
   VacacionBalanceApi,
   VacacionListResponse,
-  VacacionListResponseApi
+  VacacionListResponseApi,
+  VacacionReview,
+  VacacionReviewApi
 } from '../models/vacaciones.model';
 
 /**
@@ -79,4 +81,13 @@ export const mapVacacionListResponseApiToVacacionListResponse = (
   total: api.total,
   skip: api.skip,
   limit: api.limit
+});
+
+/**
+ * Convierte datos de revisión (aprobar/rechazar) de Frontend a formato API (SolicitudReview)
+ * Solo para usuarios HR
+ */
+export const mapVacacionReviewToApi = (review: VacacionReview): VacacionReviewApi => ({
+  approved: review.approved,
+  comentarios_revision: review.comentariosRevision
 });

@@ -41,49 +41,6 @@
   gap: 20px;
 }
 
-.action-card {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  border: 1px solid #e2e8f0;
-}
-
-.action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  border-color: #cbd5e0;
-}
-
-.card-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-  color: #5a67d8;
-}
-
-.action-card h3 {
-  margin: 0 0 10px 0;
-  color: #2d3748;
-  font-size: 20px;
-}
-
-.action-card p {
-  margin: 0;
-  color: #718096;
-  font-size: 14px;
-}
-
-.card-hr {
-  border: 2px solid #c6f6d5;
-}
-
 .info-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

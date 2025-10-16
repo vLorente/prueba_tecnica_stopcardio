@@ -38,10 +38,27 @@ export const routes: Routes = [
         path: 'vacaciones',
         loadComponent: () => import('@features/vacaciones/vacaciones.component').then(m => m.VacacionesComponent)
       },
+      // HR Administration Routes
       {
-        path: 'usuarios',
+        path: 'rrhh',
+        loadComponent: () => import('@features/rrhh/rrhh-dashboard.component').then(m => m.RrhhDashboardComponent),
+        canActivate: [hrGuard]
+      },
+      {
+        path: 'rrhh/aprobaciones',
+        loadComponent: () => import('@features/vacaciones/aprobaciones/aprobaciones-rrhh.component').then(m => m.AprobacionesRrhhComponent),
+        canActivate: [hrGuard]
+      },
+      {
+        path: 'rrhh/usuarios',
         loadComponent: () => import('@features/usuarios/usuarios.component').then(m => m.UsuariosComponent),
         canActivate: [hrGuard]
+      },
+      // Legacy route - redirect to new RRHH structure
+      {
+        path: 'usuarios',
+        redirectTo: '/rrhh/usuarios',
+        pathMatch: 'full'
       }
     ]
   },

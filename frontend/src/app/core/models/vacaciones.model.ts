@@ -158,6 +158,40 @@ export interface VacacionListResponseApi {
 }
 
 /**
+ * Datos para revisar (aprobar/rechazar) una solicitud (frontend)
+ * Solo para usuarios HR
+ * Corresponde a SolicitudReview en el OpenAPI
+ */
+export interface VacacionReview {
+  approved: boolean;  // true = aprobar, false = rechazar
+  comentariosRevision: string | null;
+}
+
+/**
+ * Datos para revisar (aprobar/rechazar) una solicitud (API)
+ * Corresponde a SolicitudReview en el OpenAPI
+ */
+export interface VacacionReviewApi {
+  approved: boolean;
+  comentarios_revision: string | null;  // máximo 500 caracteres
+}
+
+/**
+ * Parámetros de consulta para listar todas las solicitudes (HR)
+ * Corresponde a los query params de /api/vacaciones
+ */
+export interface VacacionAllQueryParams {
+  user_id?: number;        // Filtrar por ID de usuario
+  tipo?: string;           // Filtrar por tipo
+  status?: string;         // Filtrar por estado
+  fecha_desde?: string;    // Fecha inicio del rango (YYYY-MM-DD)
+  fecha_hasta?: string;    // Fecha fin del rango (YYYY-MM-DD)
+  activas_only?: boolean;  // Solo solicitudes actualmente en curso
+  skip?: number;           // Registros a saltar (paginación)
+  limit?: number;          // Máximo de registros a retornar
+}
+
+/**
  * Labels para mostrar en UI
  */
 export const VACACION_TIPO_LABELS: Record<VacacionTipo, string> = {

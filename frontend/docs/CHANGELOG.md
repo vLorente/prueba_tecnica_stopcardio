@@ -4,6 +4,130 @@ Registro de cambios por iteración del desarrollo del frontend.
 
 ---
 
+## [Iteración 4] - 2025-10-16
+
+### ✅ Completada - Gestión RRHH: Aprobaciones
+
+**Objetivo**: Implementar sistema de revisión y aprobación de solicitudes de vacaciones para usuarios HR.
+
+**Duración**: 4 horas reales (estimado: 2-3 horas)
+
+#### Añadido
+- **Feature: Aprobaciones RRHH**:
+  - `AprobacionesRrhhComponent`: Componente completo (1,015 líneas) con:
+    - Tabla de solicitudes con 8 columnas
+    - Filtros por estado (pendiente, aprobada, rechazada) y tipo
+    - Modales de aprobación/rechazo con formularios reactivos
+    - Paginación integrada
+    - Badges coloreados para estados y tipos
+  
+- **Dashboard RRHH Unificado**:
+  - `RrhhDashboardComponent`: Dashboard centralizado para funcionalidades HR
+  - Ruta `/rrhh` como punto de entrada único para administración
+  - Navegación jerárquica: `/rrhh/aprobaciones`, `/rrhh/usuarios`
+  
+- **Componente Compartido**:
+  - `DashboardCardComponent`: Componente reutilizable para tarjetas de dashboard (333 líneas)
+  - 9 inputs configurables (title, description, icon, route, color, etc.)
+  - Renderizado condicional (link/div para habilitado/deshabilitado)
+  
+- **Modelos y Mappers**:
+  - `VacacionReview`, `VacacionReviewApi`: Modelos para revisión (100% alineado con OpenAPI)
+  - `VacacionAllQueryParams`: Parámetros de consulta para endpoint HR
+  - `mapVacacionReviewToApi`: Mapper para requests de revisión
+  
+- **VacacionesService Extendido** (+180 líneas):
+  - 5 nuevos métodos HR:
+    - `loadAllSolicitudes()`: Cargar todas las solicitudes (filtros opcionales)
+    - `loadPendingSolicitudes()`: Solicitudes pendientes de revisión
+    - `reviewSolicitud()`: Aprobar/rechazar con comentarios
+    - `loadUserBalance()`: Consultar balance de cualquier usuario
+    - `goToHrPage()`: Navegación paginada
+  - 6 signals privados HR, 9 computed públicos HR
+  - Auto-reload después de revisión
+
+#### Cambiado
+- **Routing**:
+  - Añadidas 3 rutas HR protegidas con `hrGuard`
+  - Redirect: `/usuarios` → `/rrhh/usuarios`
+  - Estructura jerárquica: `/rrhh/*`
+
+- **MainLayoutComponent**:
+  - Menú simplificado: 1 enlace "Administración RRHH" (en lugar de múltiples)
+  - routerLinkActive con `exact: false` para sub-rutas
+
+- **DashboardComponent**:
+  - Refactorizado para usar `DashboardCardComponent` compartido
+  - Tarjeta HR apunta a `/rrhh` (dashboard unificado)
+  - CSS reducido (-40 líneas, estilos movidos a componente compartido)
+
+- **RrhhDashboardComponent** (simplificación):
+  - Reducido de 4 features a 2 activas (eliminadas "próximamente")
+  - Eliminada sección "Accesos Rápidos"
+  - CSS reducido de 238 a 56 líneas (-182 líneas)
+
+#### Testing
+- **VacacionesService**: +8 tests HR (165 tests totales)
+  - Tests para todos los métodos HR
+  - Patrón consistente: `async + expectAsync().toBeRejected()`
+  
+- **Nuevos componentes**: +25 tests
+  - `RrhhDashboardComponent`: 11 tests
+  - `DashboardCardComponent`: 14 tests
+  
+- **Tests actualizados**:
+  - MainLayoutComponent: Texto "Administración RRHH"
+  - DashboardComponent: Búsqueda de `app-dashboard-card`
+  - FichajesService: Añadida expectativa en test de paginación
+
+- **Resultado**: 183/183 tests SUCCESS (100%)
+
+#### Arquitectura y Decisiones Técnicas
+
+- **Separación de Signals Employee/HR**: 
+  - `solicitudesSignal` (employee) vs `allSolicitudesSignal` (HR)
+  - Permite cargar datos independientes sin conflictos
+
+- **Componente Compartido para DRY**:
+  - Extraído `DashboardCardComponent` de código duplicado
+  - Reutilizable en múltiples dashboards
+  - Diseño homogéneo sin animaciones de entrada
+
+- **Lazy Loading HR Modules**:
+  - Módulo RRHH completamente lazy loaded
+  - Bundle size: +24.7 kB (solo carga cuando usuario HR accede)
+  - Impacto gzipped: +6.11 kB
+
+- **Testing Pattern Unificado**:
+  - Eliminados `done` callbacks
+  - Patrón estándar: `fakeAsync + async + expectAsync().toBeRejected()`
+
+#### Desafíos Resueltos
+
+1. **Testing de RouterLink**: Verificación flexible (ng-reflect o href)
+2. **Dashboard Features "Próximamente"**: Reducido a solo features activas
+3. **Código Duplicado**: Extraído componente compartido
+4. **Patrón Testing Inconsistente**: Unificado en toda la codebase
+5. **Texto de Navegación**: Actualizado "Usuarios" → "Administración RRHH"
+
+#### Métricas
+- **Código nuevo**: ~1,817 líneas netas
+- **Tests**: +33 nuevos (183 totales, 100% success)
+- **Bundle size**: +24.7 kB lazy loaded (+6.11 kB gzipped)
+- **Componentes**: 3 nuevos (Aprobaciones, Dashboard RRHH, Dashboard Card)
+- **Servicios**: 1 extendido (VacacionesService +180 líneas)
+
+#### Documentación
+- `docs/iteraciones/iteracion-4.md`: Especificación de la iteración
+- `docs/iteraciones/checklists/CHECKLIST-ITERACION-4.md`: Checklist completado
+- `docs/iteraciones/notas-tecnicas/ITERACION-4.md`: Deep dive técnico (decisiones arquitectónicas, desafíos, soluciones)
+
+#### Notas
+- ⚠️ Pendiente: Tests del componente `AprobacionesRrhhComponent` (~25 tests estimados)
+- Ver `docs/iteraciones/notas-tecnicas/ITERACION-4.md` para análisis técnico detallado
+
+---
+
 ## [Iteración 1] - 2025-10-16
 
 ### ✅ Completada - Autenticación Básica

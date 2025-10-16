@@ -5,6 +5,7 @@ import localeEs from '@angular/common/locales/es';
 import { LOCALE_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { DashboardComponent } from './dashboard.component';
+import { DashboardCardComponent } from '@shared/components/dashboard-card/dashboard-card.component';
 import { AuthService } from '@core/services/auth.service';
 import type { User } from '@core/models/user.model';
 
@@ -37,7 +38,7 @@ describe('DashboardComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [DashboardComponent],
+      imports: [DashboardComponent, DashboardCardComponent],
       providers: [
         { provide: AuthService, useValue: authServiceMock },
         { provide: LOCALE_ID, useValue: 'es-ES' },
@@ -79,7 +80,7 @@ describe('DashboardComponent', () => {
   it('should display HR-specific content for HR users', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const hrSection = compiled.textContent;
-    expect(hrSection).toContain('Gestión de Usuarios');
+    expect(hrSection).toContain('Administración RRHH');
   });
 
   it('should display employee-specific content for employee users', () => {
@@ -100,8 +101,8 @@ describe('DashboardComponent', () => {
 
   it('should have navigation links', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const links = compiled.querySelectorAll('a[routerLink]');
-    expect(links.length).toBeGreaterThan(0);
+    const dashboardCards = compiled.querySelectorAll('app-dashboard-card');
+    expect(dashboardCards.length).toBeGreaterThan(0);
   });
 
   it('should display role badge', () => {

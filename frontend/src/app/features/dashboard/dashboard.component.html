@@ -9,33 +9,42 @@
 
     <div class="actions-grid">
       <!-- Fichajes Card -->
-      <a routerLink="/fichajes" class="action-card">
-        <div class="card-icon">⏰</div>
-        <h3>Fichajes</h3>
-        <p>Registra tu entrada o salida</p>
-      </a>
+      <app-dashboard-card
+        title="Fichajes"
+        description="Registra tu entrada o salida"
+        icon="⏰"
+        route="/fichajes"
+        [showArrow]="false"
+      />
 
       <!-- Vacaciones Card -->
-      <a routerLink="/vacaciones" class="action-card">
-        <div class="card-icon">🏖️</div>
-        <h3>Vacaciones</h3>
-        <p>Solicita días de ausencia</p>
-      </a>
+      <app-dashboard-card
+        title="Vacaciones"
+        description="Solicita días de ausencia"
+        icon="🏖️"
+        route="/vacaciones"
+        [showArrow]="false"
+      />
 
       <!-- Profile Card -->
-      <a routerLink="/profile" class="action-card">
-        <div class="card-icon">👤</div>
-        <h3>Mi Perfil</h3>
-        <p>Ver información personal</p>
-      </a>
+      <app-dashboard-card
+        title="Mi Perfil"
+        description="Ver información personal"
+        icon="👤"
+        route="/profile"
+        [showArrow]="false"
+      />
 
-      <!-- HR Only: Usuarios Card -->
+      <!-- HR Only: RRHH Dashboard Card -->
       @if (authService.isHR()) {
-        <a routerLink="/usuarios" class="action-card card-hr">
-          <div class="card-icon">👥</div>
-          <h3>Gestión de Usuarios</h3>
-          <p>Administrar empleados</p>
-        </a>
+        <app-dashboard-card
+          title="Administración RRHH"
+          description="Gestionar empleados y aprobaciones"
+          icon="👥"
+          route="/rrhh"
+          customClass="card-hr"
+          [showArrow]="false"
+        />
       }
     </div>
   </div>

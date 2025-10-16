@@ -1,0 +1,114 @@
+/* Action Card - Shared Styles */
+.action-card {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  height: 100%;
+}
+
+.action-card:not(.disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #cbd5e0;
+}
+
+.action-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Card Icon */
+.card-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+}
+
+.action-card:not(.disabled):hover .card-icon {
+  transform: scale(1.1);
+}
+
+.disabled-icon {
+  opacity: 0.5;
+}
+
+/* Card Text */
+.action-card h3 {
+  margin: 0 0 10px 0;
+  color: #2d3748;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.action-card p {
+  margin: 0;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.action-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.disabled-footer .action-text {
+  color: #a0aec0;
+}
+
+.arrow {
+  font-size: 20px;
+  color: #667eea;
+  transition: transform 0.3s ease;
+}
+
+.action-card:not(.disabled):hover .arrow {
+  transform: translateX(4px);
+}
+
+/* Special Card Variants */
+.card-hr {
+  border: 2px solid #c6f6d5;
+}
+
+.card-hr:hover {
+  border-color: #9ae6b4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .action-card {
+    padding: 24px;
+  }
+
+  .card-icon {
+    font-size: 40px;
+  }
+
+  .action-card h3 {
+    font-size: 18px;
+  }
+}

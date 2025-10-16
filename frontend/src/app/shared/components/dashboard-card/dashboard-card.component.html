@@ -1,0 +1,26 @@
+@if (route() && !disabled()) {
+  <!-- Enabled card with link -->
+  <a [routerLink]="route()" class="action-card" [class]="customClass()">
+    <div class="card-icon" [style.color]="color()">{{ icon() }}</div>
+    <h3>{{ title() }}</h3>
+    <p>{{ description() }}</p>
+    @if (showArrow()) {
+      <div class="card-footer">
+        <span class="action-text">{{ actionText() }}</span>
+        <span class="arrow">→</span>
+      </div>
+    }
+  </a>
+} @else {
+  <!-- Disabled card without link -->
+  <div class="action-card disabled" [class]="customClass()">
+    <div class="card-icon disabled-icon" [style.color]="color()">{{ icon() }}</div>
+    <h3>{{ title() }}</h3>
+    <p>{{ description() }}</p>
+    @if (disabled()) {
+      <div class="card-footer disabled-footer">
+        <span class="action-text">Próximamente</span>
+      </div>
+    }
+  </div>
+}

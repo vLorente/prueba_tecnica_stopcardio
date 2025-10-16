@@ -236,6 +236,7 @@ describe('FichajesService', () => {
       await service.goToPage(5); // Out of range
 
       httpMock.expectNone((r) => r.url.includes('/fichajes/me'));
+      expect(service.currentPage()).toBe(1); // Should remain on page 1
     });
   });
 
