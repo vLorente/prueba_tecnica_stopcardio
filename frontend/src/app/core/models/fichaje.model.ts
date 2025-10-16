@@ -85,6 +85,40 @@ export interface FichajeCheckOutApi {
 }
 
 /**
+ * Request para solicitar corrección de fichaje (Frontend)
+ */
+export interface FichajeCorrection {
+  checkIn: Date;
+  checkOut?: Date;
+  correctionReason: string;
+}
+
+/**
+ * Request API para solicitar corrección (snake_case)
+ */
+export interface FichajeCorrectionApi {
+  check_in: string; // ISO 8601 format
+  check_out?: string; // ISO 8601 format
+  correction_reason: string; // min 10, max 1000 chars
+}
+
+/**
+ * Request para aprobar/rechazar corrección de fichaje (Frontend)
+ */
+export interface FichajeApproval {
+  approved: boolean;
+  approvalNotes?: string;
+}
+
+/**
+ * Request API para aprobar/rechazar corrección (snake_case)
+ */
+export interface FichajeApprovalApi {
+  approved: boolean;
+  approval_notes?: string; // max 500 chars
+}
+
+/**
  * Respuesta paginada de fichajes (Frontend)
  */
 export interface FichajeListResponse {

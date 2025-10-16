@@ -10,6 +10,10 @@ import type {
   FichajeCheckInApi,
   FichajeCheckOut,
   FichajeCheckOutApi,
+  FichajeCorrection,
+  FichajeCorrectionApi,
+  FichajeApproval,
+  FichajeApprovalApi,
   FichajeListResponse,
   FichajeListResponseApi,
   FichajeStats,
@@ -58,6 +62,27 @@ export function mapFichajeCheckInToApi(checkIn: FichajeCheckIn): FichajeCheckInA
 export function mapFichajeCheckOutToApi(checkOut: FichajeCheckOut): FichajeCheckOutApi {
   return {
     notes: checkOut.notes
+  };
+}
+
+/**
+ * Convierte un request de corrección de Frontend a API
+ */
+export function mapFichajeCorrectionToApi(correction: FichajeCorrection): FichajeCorrectionApi {
+  return {
+    check_in: correction.checkIn.toISOString(),
+    check_out: correction.checkOut ? correction.checkOut.toISOString() : undefined,
+    correction_reason: correction.correctionReason
+  };
+}
+
+/**
+ * Convierte un request de aprobación de Frontend a API
+ */
+export function mapFichajeApprovalToApi(approval: FichajeApproval): FichajeApprovalApi {
+  return {
+    approved: approval.approved,
+    approval_notes: approval.approvalNotes
   };
 }
 

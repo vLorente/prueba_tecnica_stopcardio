@@ -310,4 +310,219 @@ describe('FichajesService', () => {
       expect(service.error()).toBeNull();
     });
   });
+
+  describe('solicitarCorreccion', () => {
+    it('should request correction successfully', fakeAsync(async () => {
+      const correction = {
+        checkIn: new Date('2025-10-16T08:30:00Z'),
+        checkOut: new Date('2025-10-16T17:30:00Z'),
+        correctionReason: 'Olvidé fichar a la hora correcta'
+      };
+
+      const correctedFichaje = {
+        ...mockFichajeApi,
+        status: 'pending_correction' as const,
+        correction_reason: correction.correctionReason,
+        correction_requested_at: '2025-10-16T10:00:00Z'
+      };
+
+      const correctionPromise = service.solicitarCorreccion(1, correction);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/correct');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        check_in: '2025-10-16T08:30:00.000Z',
+        check_out: '2025-10-16T17:30:00.000Z',
+        correction_reason: correction.correctionReason
+      });
+
+      req.flush(correctedFichaje);
+
+      tick();
+
+      // Expect loadFichajes to be called after correction
+      const listReq = httpMock.expectOne((r) => r.url.includes('/fichajes/me'));
+      listReq.flush(mockFichajeListApi);
+
+      tick();
+      const result = await correctionPromise;
+
+      expect(result).toBeDefined();
+      expect(result.status).toBe('pending_correction');
+      expect(result.correctionReason).toBe(correction.correctionReason);
+    }));
+
+    it('should handle correction error', async () => {
+      const correction = {
+        checkIn: new Date('2025-10-16T08:30:00Z'),
+        correctionReason: 'Test reason'
+      };
+
+      const correctionPromise = service.solicitarCorreccion(1, correction);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/correct');
+      req.flush(
+        { error: 'No se puede solicitar corrección' },
+        { status: 400, statusText: 'Bad Request' }
+      );
+
+      await expectAsync(correctionPromise).toBeRejected();
+      expect(service.error()).toBeTruthy();
+    });
+  });
+
+  describe('aprobarCorreccion', () => {
+    it('should approve correction successfully', fakeAsync(async () => {
+      const approvedFichaje = {
+        ...mockFichajeApi,
+        status: 'corrected' as const,
+        approved_by: 2,
+        approved_at: '2025-10-16T12:00:00Z',
+        approval_notes: 'Aprobado correctamente'
+      };
+
+      const approvePromise = service.aprobarCorreccion(1, 'Aprobado correctamente');
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        approved: true,
+        approval_notes: 'Aprobado correctamente'
+      });
+
+      req.flush(approvedFichaje);
+
+      tick();
+
+      // Expect loadFichajes to be called after approval
+      const listReq = httpMock.expectOne((r) => r.url.includes('/fichajes/me'));
+      listReq.flush(mockFichajeListApi);
+
+      tick();
+      const result = await approvePromise;
+
+      expect(result).toBeDefined();
+      expect(result.status).toBe('corrected');
+      expect(result.approvalNotes).toBe('Aprobado correctamente');
+    }));
+
+    it('should approve correction without notes', fakeAsync(async () => {
+      const approvedFichaje = {
+        ...mockFichajeApi,
+        status: 'corrected' as const,
+        approved_by: 2,
+        approved_at: '2025-10-16T12:00:00Z',
+        approval_notes: null
+      };
+
+      const approvePromise = service.aprobarCorreccion(1);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      expect(req.request.body).toEqual({
+        approved: true,
+        approval_notes: undefined
+      });
+
+      req.flush(approvedFichaje);
+
+      tick();
+
+      const listReq = httpMock.expectOne((r) => r.url.includes('/fichajes/me'));
+      listReq.flush(mockFichajeListApi);
+
+      tick();
+      await approvePromise;
+    }));
+
+    it('should handle approval error', async () => {
+      const approvePromise = service.aprobarCorreccion(1);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      req.flush(
+        { error: 'No tienes permisos' },
+        { status: 403, statusText: 'Forbidden' }
+      );
+
+      await expectAsync(approvePromise).toBeRejected();
+      expect(service.error()).toBeTruthy();
+    });
+  });
+
+  describe('rechazarCorreccion', () => {
+    it('should reject correction successfully', fakeAsync(async () => {
+      const rejectedFichaje = {
+        ...mockFichajeApi,
+        status: 'rejected' as const,
+        approved_by: 2,
+        approved_at: '2025-10-16T12:00:00Z',
+        approval_notes: 'Rechazado: datos incorrectos'
+      };
+
+      const rejectPromise = service.rechazarCorreccion(1, 'Rechazado: datos incorrectos');
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        approved: false,
+        approval_notes: 'Rechazado: datos incorrectos'
+      });
+
+      req.flush(rejectedFichaje);
+
+      tick();
+
+      // Expect loadFichajes to be called after rejection
+      const listReq = httpMock.expectOne((r) => r.url.includes('/fichajes/me'));
+      listReq.flush(mockFichajeListApi);
+
+      tick();
+      const result = await rejectPromise;
+
+      expect(result).toBeDefined();
+      expect(result.status).toBe('rejected');
+      expect(result.approvalNotes).toBe('Rechazado: datos incorrectos');
+    }));
+
+    it('should reject correction without notes', fakeAsync(async () => {
+      const rejectedFichaje = {
+        ...mockFichajeApi,
+        status: 'rejected' as const,
+        approved_by: 2,
+        approved_at: '2025-10-16T12:00:00Z',
+        approval_notes: null
+      };
+
+      const rejectPromise = service.rechazarCorreccion(1);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      expect(req.request.body).toEqual({
+        approved: false,
+        approval_notes: undefined
+      });
+
+      req.flush(rejectedFichaje);
+
+      tick();
+
+      const listReq = httpMock.expectOne((r) => r.url.includes('/fichajes/me'));
+      listReq.flush(mockFichajeListApi);
+
+      tick();
+      await rejectPromise;
+    }));
+
+    it('should handle rejection error', async () => {
+      const rejectPromise = service.rechazarCorreccion(1);
+
+      const req = httpMock.expectOne('http://localhost:8000/api/fichajes/1/approve');
+      req.flush(
+        { error: 'No tienes permisos' },
+        { status: 403, statusText: 'Forbidden' }
+      );
+
+      await expectAsync(rejectPromise).toBeRejected();
+      expect(service.error()).toBeTruthy();
+    });
+  });
 });
+

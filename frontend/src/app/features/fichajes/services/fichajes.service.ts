@@ -6,6 +6,8 @@ import type {
   FichajeApi,
   FichajeCheckIn,
   FichajeCheckOut,
+  FichajeCorrection,
+  FichajeApproval,
   FichajeListResponse,
   FichajeListResponseApi,
   FichajeStats,
@@ -16,6 +18,8 @@ import {
   mapFichajeApiToFichaje,
   mapFichajeCheckInToApi,
   mapFichajeCheckOutToApi,
+  mapFichajeCorrectionToApi,
+  mapFichajeApprovalToApi,
   mapFichajeListResponseApiToFichajeListResponse,
   mapFichajeStatsApiToFichajeStats
 } from '@core/mappers/fichaje.mapper';
@@ -245,6 +249,100 @@ export class FichajesService {
       const errorMessage = error?.message || 'Error al cargar estadísticas';
       this.errorSignal.set(errorMessage);
       throw error;
+    }
+  }
+
+  /**
+   * Solicita una corrección para un fichaje
+   */
+  async solicitarCorreccion(fichajeId: number, correccion: FichajeCorrection): Promise<Fichaje> {
+    try {
+      this.loadingSignal.set(true);
+      this.errorSignal.set(null);
+
+      const apiData = mapFichajeCorrectionToApi(correccion);
+      const response = await firstValueFrom(
+        this.apiService.post<FichajeApi>(`/fichajes/${fichajeId}/correct`, apiData)
+      );
+
+      const fichaje = mapFichajeApiToFichaje(response);
+
+      // Recargar el historial
+      await this.loadFichajes();
+
+      return fichaje;
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error al solicitar corrección';
+      this.errorSignal.set(errorMessage);
+      throw error;
+    } finally {
+      this.loadingSignal.set(false);
+    }
+  }
+
+  /**
+   * Aprueba una solicitud de corrección de fichaje
+   */
+  async aprobarCorreccion(fichajeId: number, notes?: string): Promise<Fichaje> {
+    try {
+      this.loadingSignal.set(true);
+      this.errorSignal.set(null);
+
+      const approval: FichajeApproval = {
+        approved: true,
+        approvalNotes: notes
+      };
+
+      const apiData = mapFichajeApprovalToApi(approval);
+      const response = await firstValueFrom(
+        this.apiService.post<FichajeApi>(`/fichajes/${fichajeId}/approve`, apiData)
+      );
+
+      const fichaje = mapFichajeApiToFichaje(response);
+
+      // Recargar el historial
+      await this.loadFichajes();
+
+      return fichaje;
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error al aprobar corrección';
+      this.errorSignal.set(errorMessage);
+      throw error;
+    } finally {
+      this.loadingSignal.set(false);
+    }
+  }
+
+  /**
+   * Rechaza una solicitud de corrección de fichaje
+   */
+  async rechazarCorreccion(fichajeId: number, notes?: string): Promise<Fichaje> {
+    try {
+      this.loadingSignal.set(true);
+      this.errorSignal.set(null);
+
+      const approval: FichajeApproval = {
+        approved: false,
+        approvalNotes: notes
+      };
+
+      const apiData = mapFichajeApprovalToApi(approval);
+      const response = await firstValueFrom(
+        this.apiService.post<FichajeApi>(`/fichajes/${fichajeId}/approve`, apiData)
+      );
+
+      const fichaje = mapFichajeApiToFichaje(response);
+
+      // Recargar el historial
+      await this.loadFichajes();
+
+      return fichaje;
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error al rechazar corrección';
+      this.errorSignal.set(errorMessage);
+      throw error;
+    } finally {
+      this.loadingSignal.set(false);
     }
   }
 
