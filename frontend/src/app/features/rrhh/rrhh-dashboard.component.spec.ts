@@ -31,8 +31,8 @@ describe('RrhhDashboardComponent', () => {
     expect(component.features.length).toBe(2);
   });
 
-  it('should have Aprobación de Vacaciones feature', () => {
-    const aprobacionesFeature = component.features.find(f => f.title === 'Aprobación de Vacaciones');
+  it('should have Gestión de Vacaciones feature', () => {
+    const aprobacionesFeature = component.features.find(f => f.title === 'Gestión de Vacaciones');
     expect(aprobacionesFeature).toBeDefined();
     expect(aprobacionesFeature?.route).toBe('/rrhh/aprobaciones');
     expect(aprobacionesFeature?.icon).toBe('📋');

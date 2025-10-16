@@ -1,0 +1,120 @@
+<div class="form-container">
+  <div class="form-header">
+    <h3>{{ getFormTitle() }}</h3>
+  </div>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="usuario-form">
+    <!-- Email -->
+    <div class="form-group">
+      <label for="email" class="form-label">
+        Email <span class="required">*</span>
+      </label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        [class.error]="hasError('email')"
+        class="form-input"
+        placeholder="usuario@ejemplo.com"
+        autocomplete="email">
+      @if (hasError('email')) {
+        <span class="error-message">{{ getErrorMessage('email') }}</span>
+      }
+    </div>
+
+    <!-- Full Name -->
+    <div class="form-group">
+      <label for="fullName" class="form-label">
+        Nombre Completo <span class="required">*</span>
+      </label>
+      <input
+        id="fullName"
+        type="text"
+        formControlName="fullName"
+        [class.error]="hasError('fullName')"
+        class="form-input"
+        placeholder="Juan Pérez"
+        autocomplete="name">
+      @if (hasError('fullName')) {
+        <span class="error-message">{{ getErrorMessage('fullName') }}</span>
+      }
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label for="password" class="form-label">
+        Contraseña 
+        @if (!isEditMode()) {
+          <span class="required">*</span>
+        }
+        @if (isEditMode()) {
+          <span class="optional">(opcional)</span>
+        }
+      </label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        [class.error]="hasError('password')"
+        class="form-input"
+        placeholder="••••••••"
+        autocomplete="new-password">
+      @if (hasError('password')) {
+        <span class="error-message">{{ getErrorMessage('password') }}</span>
+      }
+      @if (isEditMode() && !hasError('password')) {
+        <span class="help-text">Dejar en blanco para mantener la contraseña actual</span>
+      }
+    </div>
+
+    <!-- Role -->
+    <div class="form-group">
+      <label for="role" class="form-label">
+        Rol <span class="required">*</span>
+      </label>
+      <select
+        id="role"
+        formControlName="role"
+        [class.error]="hasError('role')"
+        class="form-select">
+        <option value="employee">Empleado</option>
+        <option value="hr">Recursos Humanos</option>
+      </select>
+      @if (hasError('role')) {
+        <span class="error-message">{{ getErrorMessage('role') }}</span>
+      }
+    </div>
+
+    <!-- Is Active -->
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          formControlName="isActive"
+          class="form-checkbox">
+        <span>Usuario activo</span>
+      </label>
+      <span class="help-text">Los usuarios inactivos no podrán iniciar sesión</span>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isSubmitting()"
+        class="btn btn-secondary">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="userForm.invalid || isSubmitting()"
+        class="btn btn-primary">
+        @if (isSubmitting()) {
+          <span class="spinner"></span>
+        }
+        {{ getSubmitButtonText() }}
+      </button>
+    </div>
+  </form>
+</div>

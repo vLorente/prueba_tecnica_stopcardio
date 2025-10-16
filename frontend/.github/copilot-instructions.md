@@ -34,6 +34,37 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
 
+### HTTP Calls and Asynchronous Operations
+- **ALWAYS use async/await pattern** with `firstValueFrom()` for HTTP calls
+- **NEVER use `.subscribe()` directly** or create Promises manually with `new Promise()`
+- Use `try/catch/finally` blocks for error handling
+- Set `loading` state in `try` block and clear it in `finally` block
+- Example pattern (MANDATORY):
+  ```typescript
+  async loadData(): Promise<void> {
+    try {
+      this.loadingSignal.set(true);
+      this.errorSignal.set(null);
+      
+      const response = await firstValueFrom(
+        this.apiService.get<DataResponse>('/endpoint')
+      );
+      
+      // Process response
+      this.dataSignal.set(response.data);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error loading data';
+      this.errorSignal.set(errorMessage);
+      console.error('Error loading data:', error);
+      throw error; // Re-throw for caller to handle if needed
+    } finally {
+      this.loadingSignal.set(false);
+    }
+  }
+  ```
+- **DO NOT** use Observable operators like `pipe()`, `tap()`, `catchError()` with `.subscribe()`
+- This pattern ensures consistency, easier testing, and better error handling across the project
+
 ## Testing Best Practices
 - Use `fakeAsync` and `tick()` for testing asynchronous operations
 - Wrap all async test functions with `fakeAsync` when testing promises or observables

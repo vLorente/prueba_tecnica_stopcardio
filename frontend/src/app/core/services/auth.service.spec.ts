@@ -16,8 +16,8 @@ describe('AuthService', () => {
     fullName: 'Test User',
     role: 'employee',
     isActive: true,
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z'
+    createdAt: new Date('2025-01-01T00:00:00Z'),
+    updatedAt: new Date('2025-01-01T00:00:00Z')
   };
 
   const mockUserApi: UserApi = {

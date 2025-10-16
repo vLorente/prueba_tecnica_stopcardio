@@ -21,8 +21,8 @@ describe('ProfileComponent', () => {
     fullName: 'Test User',
     role: 'employee',
     isActive: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
+    createdAt: new Date('2024-01-01T00:00:00Z'),
+    updatedAt: new Date('2024-01-15T00:00:00Z')
   };
 
   beforeEach(async () => {
@@ -85,10 +85,13 @@ describe('ProfileComponent', () => {
     expect(component.getInitials('Test')).toBe('T');
   });
 
-  it('should format date correctly', () => {
-    const formattedDate = component.formatDate('2024-01-15T00:00:00Z');
-    expect(formattedDate).toContain('2024');
-    expect(formattedDate).toContain('enero');
+  it('should check if dates are different', () => {
+    const date1 = new Date('2024-01-01T00:00:00Z');
+    const date2 = new Date('2024-01-15T00:00:00Z');
+    const date3 = new Date('2024-01-01T00:00:00Z');
+
+    expect(component.isDifferentDate(date1, date2)).toBe(true);
+    expect(component.isDifferentDate(date1, date3)).toBe(false);
   });
 
   it('should display active status badge', () => {

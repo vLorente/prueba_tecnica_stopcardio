@@ -146,7 +146,13 @@ export class AuthService {
 
     if (token && userJson) {
       try {
-        const user = JSON.parse(userJson) as User;
+        const parsedUser = JSON.parse(userJson);
+        // Convert date strings back to Date objects
+        const user: User = {
+          ...parsedUser,
+          createdAt: new Date(parsedUser.createdAt),
+          updatedAt: new Date(parsedUser.updatedAt)
+        };
         this.tokenSignal.set(token);
         this.userSignal.set(user);
       } catch (error) {

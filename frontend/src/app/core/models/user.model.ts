@@ -15,8 +15,8 @@ export interface User {
   fullName: string;
   role: UserRole;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -90,4 +90,34 @@ export interface UserUpdateApi {
   password?: string;
   role?: UserRole;
   is_active?: boolean;
+}
+
+/**
+ * User List Response (Frontend - camelCase)
+ */
+export interface UserListResponse {
+  users: User[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/**
+ * User List API Response (Backend - snake_case)
+ */
+export interface UserListApiResponse {
+  users: UserApi[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+/**
+ * Query parameters for listing users
+ */
+export interface UserQueryParams {
+  skip?: number;
+  limit?: number;
+  role?: UserRole | null;
+  isActive?: boolean | null;
 }

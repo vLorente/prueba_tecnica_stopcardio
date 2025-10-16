@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { UsuariosListComponent } from './usuarios-list/usuarios-list.component';
 
+/**
+ * UsuariosComponent
+ * Contenedor principal para la gestión de usuarios (RRHH)
+ */
 @Component({
   selector: 'app-usuarios',
-  imports: [CommonModule],
-  template: `
-    <div style="padding: 20px;">
-      <h2>Gestión de Usuarios</h2>
-      <p>En construcción - Iteración 5</p>
-    </div>
-  `
+  imports: [UsuariosListComponent],
+  template: `<app-usuarios-list />`
 })
 export class UsuariosComponent {}

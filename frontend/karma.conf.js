@@ -35,6 +35,7 @@ module.exports = function (config) {
     },
     reporters: ['progress', 'kjhtml'],
     browsers: ['ChromeHeadlessCI'],
+    browserNoActivityTimeout: 10000, // 10 seconds instead of 30
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',

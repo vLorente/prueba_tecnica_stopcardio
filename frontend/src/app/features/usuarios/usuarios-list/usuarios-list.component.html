@@ -1,0 +1,225 @@
+<div class="usuarios-container">
+  <!-- Error Message -->
+  @if (error(); as errorMsg) {
+    <div class="alert alert-error">
+      <span>{{ errorMsg }}</span>
+      <button (click)="onCloseError()" class="btn-close" aria-label="Cerrar">×</button>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="usuarios-header">
+    <div>
+      <h1>Gestión de Usuarios</h1>
+      <p class="header-subtitle">Administra los usuarios del sistema</p>
+    </div>
+    <button
+      (click)="onCreateUser()"
+      [disabled]="loading()"
+      class="btn btn-primary">
+      <span class="icon">+</span>
+      Crear Usuario
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-section">
+    <div class="stat-card">
+      <span class="stat-label">Total Usuarios</span>
+      <span class="stat-value">{{ total() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Mostrando</span>
+      <span class="stat-value">{{ users().length }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Página</span>
+      <span class="stat-value">{{ currentPage() }} / {{ totalPages() }}</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading() && users().length === 0) {
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p>Cargando usuarios...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && users().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">👥</div>
+      <h3>No hay usuarios registrados</h3>
+      <p>Comienza creando el primer usuario</p>
+      <button (click)="onCreateUser()" class="btn btn-primary">
+        Crear Usuario
+      </button>
+    </div>
+  }
+
+  <!-- Users Table -->
+  @if (users().length > 0) {
+    <div class="table-section">
+      <!-- Page Size Selector -->
+      <div class="table-controls">
+        <label for="pageSize">Mostrar:</label>
+        <select
+          id="pageSize"
+          [value]="pageSize()"
+          (change)="onPageSizeChange($event)"
+          [disabled]="loading()"
+          class="page-size-select">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>por página</span>
+      </div>
+
+      <div class="table-container">
+        <table class="usuarios-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Creado</th>
+              <th class="actions-column">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr>
+                <td>
+                  <span class="name-cell">{{ user.fullName }}</span>
+                </td>
+                <td>
+                  <span class="email-cell">{{ user.email }}</span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getRoleClass(user.role)">
+                    {{ getRoleText(user.role) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getStatusClass(user.isActive)">
+                    {{ getStatusText(user.isActive) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="date-cell">{{ user.createdAt | date: 'dd/MM/yyyy' }}</span>
+                </td>
+                <td class="actions-cell">
+                  <button
+                    (click)="onEditUser(user)"
+                    [disabled]="loading()"
+                    class="btn-icon btn-edit"
+                    title="Editar usuario">
+                    ✏️
+                  </button>
+                  <button
+                    (click)="onDeleteUser(user)"
+                    [disabled]="loading()"
+                    class="btn-icon btn-delete"
+                    title="Eliminar usuario">
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button
+          (click)="onPreviousPage()"
+          [disabled]="!hasPreviousPage() || loading()"
+          class="btn btn-pagination">
+          ← Anterior
+        </button>
+
+        <span class="pagination-info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </span>
+
+        <button
+          (click)="onNextPage()"
+          [disabled]="!hasNextPage() || loading()"
+          class="btn btn-pagination">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal() && selectedUser(); as user) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Confirmar Eliminación</h3>
+          <button (click)="closeDeleteModal()" class="btn-close">×</button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar al usuario?</p>
+          <div class="user-info-box">
+            <p><strong>Nombre:</strong> {{ user.fullName }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+          </div>
+          <p class="warning-text">Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+          <button
+            (click)="closeDeleteModal()"
+            [disabled]="processingDelete()"
+            class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button
+            (click)="confirmDelete()"
+            [disabled]="processingDelete()"
+            class="btn btn-danger">
+            @if (processingDelete()) {
+              <span class="spinner"></span>
+            }
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Create Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+        <button (click)="closeCreateModal()" class="btn-close-modal">×</button>
+        <app-usuario-form
+          [isSubmitting]="loading()"
+          (formSubmit)="onCreateSubmit($event)"
+          (formCancel)="closeCreateModal()">
+        </app-usuario-form>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Modal -->
+  @if (showEditModal() && selectedUser(); as user) {
+    <div class="modal-overlay" (click)="closeEditModal()">
+      <div class="modal-content modal-form" (click)="$event.stopPropagation()">
+        <button (click)="closeEditModal()" class="btn-close-modal">×</button>
+        <app-usuario-form
+          [user]="user"
+          [isSubmitting]="loading()"
+          (formSubmit)="onEditSubmit($event)"
+          (formCancel)="closeEditModal()">
+        </app-usuario-form>
+      </div>
+    </div>
+  }
+</div>

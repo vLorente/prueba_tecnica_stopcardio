@@ -37,12 +37,8 @@ export class ProfileComponent {
       .slice(0, 2);
   }
 
-  // Format date for display
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  // Check if dates are different (for updated date display)
+  isDifferentDate(date1: Date, date2: Date): boolean {
+    return date1.getTime() !== date2.getTime();
   }
 }

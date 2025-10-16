@@ -19,7 +19,7 @@ export const routes: Routes = [
   // Protected routes (require authentication)
   {
     path: '',
-    loadComponent: () => import('@layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
+    loadComponent: () => import('@/app/shared/layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [authGuard],
     children: [
       {

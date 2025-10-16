@@ -23,8 +23,8 @@ describe('DashboardComponent', () => {
     fullName: 'Admin User',
     role: 'hr',
     isActive: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    createdAt: new Date('2024-01-01T00:00:00Z'),
+    updatedAt: new Date('2024-01-01T00:00:00Z')
   };
 
   beforeEach(async () => {
