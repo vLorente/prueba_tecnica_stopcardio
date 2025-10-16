@@ -84,7 +84,7 @@ class SolicitudRepository:
         """
         self.session.add(solicitud)
         await self.session.flush()
-        
+
         # Recargar con relaciones para evitar lazy loading
         stmt = (
             select(Solicitud)
