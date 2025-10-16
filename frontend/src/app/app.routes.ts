@@ -45,12 +45,12 @@ export const routes: Routes = [
         canActivate: [hrGuard]
       },
       {
-        path: 'rrhh/aprobaciones',
-        loadComponent: () => import('@features/vacaciones/aprobaciones/aprobaciones-rrhh.component').then(m => m.AprobacionesRrhhComponent),
+        path: 'rrhh/vacaciones',
+        loadComponent: () => import('@/app/features/vacaciones/vacaciones-manage/vacaciones-manage.component').then(m => m.VacacionesManageComponent),
         canActivate: [hrGuard]
       },
       {
-        path: 'rrhh/correcciones',
+        path: 'rrhh/fichajes',
         loadComponent: () => import('@/app/features/fichajes/components/fichajes-manage/fichajes-manage.component').then(m => m.FichajesManageComponent),
         canActivate: [hrGuard]
       },

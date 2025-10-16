@@ -109,16 +109,23 @@
                       <button
                         type="button"
                         (click)="openApprovalModal(solicitud)"
-                        class="btn btn-approve"
+                        class="btn-icon btn-approve"
                         [disabled]="submitting()">
-                        ✓ Aprobar
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span class="btn-text">Aprobar</span>
                       </button>
                       <button
                         type="button"
                         (click)="openRejectionModal(solicitud)"
-                        class="btn btn-reject"
+                        class="btn-icon btn-reject"
                         [disabled]="submitting()">
-                        ✗ Rechazar
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span class="btn-text">Rechazar</span>
                       </button>
                     </div>
                   } @else {

@@ -22,14 +22,14 @@ export class RrhhDashboardComponent {
       title: 'Gestión de Fichajes',
       description: 'Revisar y aprobar/rechazar solicitudes de corrección de fichajes',
       icon: '✏️',
-      route: '/rrhh/correcciones',
+      route: '/rrhh/fichajes',
       color: '#f59e0b'
     },
     {
       title: 'Gestión de Vacaciones',
       description: 'Revisar y aprobar/rechazar solicitudes de vacaciones de los empleados',
       icon: '📋',
-      route: '/rrhh/aprobaciones',
+      route: '/rrhh/vacaciones',
       color: '#667eea'
     },
     {

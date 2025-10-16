@@ -34,7 +34,7 @@ describe('RrhhDashboardComponent', () => {
   it('should have Gestión de Vacaciones feature', () => {
     const aprobacionesFeature = component.features.find(f => f.title === 'Gestión de Vacaciones');
     expect(aprobacionesFeature).toBeDefined();
-    expect(aprobacionesFeature?.route).toBe('/rrhh/aprobaciones');
+    expect(aprobacionesFeature?.route).toBe('/rrhh/vacaciones');
     expect(aprobacionesFeature?.icon).toBe('📋');
     expect(aprobacionesFeature?.color).toBe('#667eea');
   });
@@ -42,7 +42,7 @@ describe('RrhhDashboardComponent', () => {
   it('should have Gestión de Correcciones feature', () => {
     const correccionesFeature = component.features.find(f => f.title === 'Gestión de Fichajes');
     expect(correccionesFeature).toBeDefined();
-    expect(correccionesFeature?.route).toBe('/rrhh/correcciones');
+    expect(correccionesFeature?.route).toBe('/rrhh/fichajes');
     expect(correccionesFeature?.icon).toBe('✏️');
     expect(correccionesFeature?.color).toBe('#f59e0b');
   });

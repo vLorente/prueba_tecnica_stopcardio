@@ -16,13 +16,13 @@ import { VACACION_TIPO_LABELS, VACACION_ESTADO_LABELS } from '@core/models/vacac
  * - Rechazar solicitudes pendientes con comentarios
  */
 @Component({
-  selector: 'app-aprobaciones-rrhh',
+  selector: 'app-vacaciones-manage',
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './aprobaciones-rrhh.component.html',
-  styleUrl: './aprobaciones-rrhh.component.css',
+  templateUrl: './vacaciones-manage.component.html',
+  styleUrl: './vacaciones-manage.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AprobacionesRrhhComponent implements OnInit {
+export class VacacionesManageComponent implements OnInit {
   private readonly vacacionesService = inject(VacacionesService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
