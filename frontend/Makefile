@@ -1,4 +1,4 @@
-.PHONY: help setup install start build test test-watch clean lint format dev dev-server
+.PHONY: help setup install start build test test-once test-watch clean lint format dev
 
 # Variables
 SCRIPTS_DIR = scripts
@@ -17,10 +17,10 @@ help:
 	@echo "  $(GREEN)make setup$(NC)        - Configura el entorno de desarrollo (instala Chrome y dependencias)"
 	@echo "  $(GREEN)make install$(NC)      - Instala solo las dependencias de npm"
 	@echo "  $(GREEN)make start$(NC)        - Inicia el servidor de desarrollo"
-	@echo "  $(GREEN)make dev-server$(NC)   - Inicia el servidor de desarrollo (alias de start)"
 	@echo "  $(GREEN)make build$(NC)        - Compila el proyecto para producción"
-	@echo "  $(GREEN)make test$(NC)         - Ejecuta los tests"
-	@echo "  $(GREEN)make test-watch$(NC)   - Ejecuta los tests en modo watch"
+	@echo "  $(GREEN)make test$(NC)         - Ejecuta los tests en modo watch"
+	@echo "  $(GREEN)make test-once$(NC)    - Ejecuta los tests una sola vez"
+	@echo "  $(GREEN)make test-watch$(NC)   - Ejecuta los tests en modo watch (alias de test)"
 	@echo "  $(GREEN)make dev$(NC)          - Compila en modo desarrollo con watch"
 	@echo "  $(GREEN)make clean$(NC)        - Limpia archivos generados y node_modules"
 	@echo "  $(GREEN)make lint$(NC)         - Ejecuta el linter (cuando esté configurado)"
@@ -49,12 +49,18 @@ build:
 	@npm run build
 	@echo "$(GREEN)✓ Proyecto compilado$(NC)"
 
-## test: Ejecuta los tests
+## test: Ejecuta los tests en modo watch
 test:
-	@echo "$(BLUE)Ejecutando tests...$(NC)"
+	@echo "$(BLUE)Ejecutando tests en modo watch...$(NC)"
 	@npm test
 
-## test-watch: Ejecuta los tests en modo watch
+## test-once: Ejecuta los tests una sola vez
+test-once:
+	@echo "$(BLUE)Ejecutando tests una vez...$(NC)"
+	@npm test -- --no-watch --browsers=ChromeHeadlessCI
+	@echo "$(GREEN)✓ Tests completados$(NC)"
+
+## test-watch: Ejecuta los tests en modo watch (alias de test)
 test-watch:
 	@echo "$(BLUE)Ejecutando tests en modo watch...$(NC)"
 	@npm test -- --watch

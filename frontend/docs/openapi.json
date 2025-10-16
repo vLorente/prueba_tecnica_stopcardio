@@ -1,0 +1,1996 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HR Management System",
+    "description": "Sistema de gestión de fichajes y recursos humanos",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Iniciar sesión",
+        "description": "Autenticar usuario con email y contraseña, devuelve JWT token",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserLogin" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Login Api Auth Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Cerrar sesión",
+        "description": "Cierra la sesión del usuario actual (token invalidation)",
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Logout Api Auth Logout Post"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Obtener perfil actual",
+        "description": "Obtiene la información del usuario autenticado",
+        "operationId": "get_me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/users/": {
+      "post": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Crear usuario",
+        "description": "Crea un nuevo usuario. Solo HR puede crear usuarios.",
+        "operationId": "create_user_api_users__post",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserCreate" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Listar usuarios",
+        "description": "Lista todos los usuarios (solo HR). Soporta paginación y filtros.",
+        "operationId": "list_users_api_users__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Número de registros a omitir",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Número de registros a omitir"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Número máximo de registros",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Número máximo de registros"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "$ref": "#/components/schemas/UserRole" }, { "type": "null" }],
+              "description": "Filtrar por rol",
+              "title": "Role"
+            },
+            "description": "Filtrar por rol"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+              "description": "Filtrar por estado activo",
+              "title": "Is Active"
+            },
+            "description": "Filtrar por estado activo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserListResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Obtener perfil actual",
+        "description": "Obtiene el perfil del usuario autenticado",
+        "operationId": "get_current_user_profile_api_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      },
+      "patch": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Actualizar perfil propio",
+        "description": "Actualiza el perfil del usuario autenticado",
+        "operationId": "update_own_profile_api_users_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserUpdateSelf" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/users/{user_id}": {
+      "get": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Obtener usuario por ID",
+        "description": "Obtiene un usuario específico. HR puede ver cualquiera, empleados solo a sí mismos.",
+        "operationId": "get_user_api_users__user_id__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "User Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Actualizar usuario (HR)",
+        "description": "Actualiza un usuario completamente (solo HR)",
+        "operationId": "update_user_api_users__user_id__put",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "User Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Eliminar usuario",
+        "description": "Elimina un usuario (solo HR, no puede eliminarse a sí mismo)",
+        "operationId": "delete_user_api_users__user_id__delete",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "User Id" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/change-password": {
+      "post": {
+        "tags": ["Users", "Usuarios"],
+        "summary": "Cambiar contraseña",
+        "description": "Cambia la contraseña del usuario autenticado",
+        "operationId": "change_password_api_users_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserChangePassword" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Change Password Api Users Change Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/fichajes/check-in": {
+      "post": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Registrar entrada (check-in)",
+        "description": "Registra la entrada del usuario actual. No puede tener otro check-in activo.",
+        "operationId": "check_in_api_fichajes_check_in_post",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/FichajeCheckIn" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/fichajes/check-out": {
+      "post": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Registrar salida (check-out)",
+        "description": "Registra la salida del usuario actual. Debe tener un check-in activo.",
+        "operationId": "check_out_api_fichajes_check_out_post",
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/FichajeCheckOut" } }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/fichajes/": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Listar todos los fichajes (solo HR)",
+        "description": "Lista todos los fichajes con filtros. Solo accesible para usuarios HR.",
+        "operationId": "list_fichajes_api_fichajes__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Registros a saltar",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Registros a saltar"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Límite de registros",
+              "default": 10,
+              "title": "Limit"
+            },
+            "description": "Límite de registros"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "integer" }, { "type": "null" }],
+              "description": "Filtrar por usuario",
+              "title": "User Id"
+            },
+            "description": "Filtrar por usuario"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "description": "Fecha desde",
+              "title": "Date From"
+            },
+            "description": "Fecha desde"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "description": "Fecha hasta",
+              "title": "Date To"
+            },
+            "description": "Fecha hasta"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Filtrar por estado",
+              "title": "Status"
+            },
+            "description": "Filtrar por estado"
+          },
+          {
+            "name": "incomplete_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Solo fichajes sin check-out",
+              "default": false,
+              "title": "Incomplete Only"
+            },
+            "description": "Solo fichajes sin check-out"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FichajeListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/me": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Mis fichajes",
+        "description": "Obtiene los fichajes del usuario actual.",
+        "operationId": "get_my_fichajes_api_fichajes_me_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0, "title": "Skip" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FichajeListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/me/active": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Mi fichaje activo",
+        "description": "Obtiene el fichaje activo (sin check-out) del usuario actual.",
+        "operationId": "get_my_active_fichaje_api_fichajes_me_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/fichajes/me/stats": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Mis estadísticas",
+        "description": "Obtiene estadísticas de fichajes del usuario actual.",
+        "operationId": "get_my_stats_api_fichajes_me_stats_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeStats" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/{fichaje_id}": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Obtener fichaje por ID",
+        "description": "Obtiene un fichaje específico. HR puede ver cualquiera, empleados solo los suyos.",
+        "operationId": "get_fichaje_api_fichajes__fichaje_id__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "fichaje_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Fichaje Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/{fichaje_id}/correct": {
+      "post": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Solicitar corrección",
+        "description": "Solicita corrección de un fichaje. Solo el propietario puede solicitarla.",
+        "operationId": "request_correction_api_fichajes__fichaje_id__correct_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "fichaje_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Fichaje Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/FichajeCorrection" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/{fichaje_id}/approve": {
+      "post": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Aprobar/rechazar corrección",
+        "description": "Aprueba o rechaza una corrección de fichaje. Solo HR puede hacerlo.",
+        "operationId": "approve_correction_api_fichajes__fichaje_id__approve_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "fichaje_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Fichaje Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/FichajeApproval" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fichajes/stats/general": {
+      "get": {
+        "tags": ["Fichajes", "Fichajes"],
+        "summary": "Estadísticas generales",
+        "description": "Obtiene estadísticas generales. HR puede ver de cualquier usuario.",
+        "operationId": "get_stats_api_fichajes_stats_general_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "User Id" }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date From"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FichajeStats" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/": {
+      "post": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Crear nueva solicitud",
+        "description": "Crear solicitud de vacaciones o ausencia. Calcula días hábiles automáticamente.",
+        "operationId": "create_solicitud_api_vacaciones__post",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudCreate" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "[HR] Listar todas las solicitudes",
+        "description": "Obtener listado completo de solicitudes con filtros avanzados.",
+        "operationId": "list_all_solicitudes_api_vacaciones__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "integer" }, { "type": "null" }],
+              "description": "Filtrar por ID de usuario",
+              "title": "User Id"
+            },
+            "description": "Filtrar por ID de usuario"
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Filtrar por tipo de solicitud",
+              "title": "Tipo"
+            },
+            "description": "Filtrar por tipo de solicitud"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Filtrar por estado",
+              "title": "Status"
+            },
+            "description": "Filtrar por estado"
+          },
+          {
+            "name": "fecha_desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Fecha inicio del rango (YYYY-MM-DD)",
+              "title": "Fecha Desde"
+            },
+            "description": "Fecha inicio del rango (YYYY-MM-DD)"
+          },
+          {
+            "name": "fecha_hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Fecha fin del rango (YYYY-MM-DD)",
+              "title": "Fecha Hasta"
+            },
+            "description": "Fecha fin del rango (YYYY-MM-DD)"
+          },
+          {
+            "name": "activas_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Solo solicitudes actualmente en curso",
+              "default": false,
+              "title": "Activas Only"
+            },
+            "description": "Solo solicitudes actualmente en curso"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Registros a saltar (paginación)",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Registros a saltar (paginación)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Máximo de registros a retornar",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Máximo de registros a retornar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SolicitudListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/me": {
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Listar mis solicitudes",
+        "description": "Obtener listado de solicitudes propias con filtros opcionales.",
+        "operationId": "get_my_solicitudes_api_vacaciones_me_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Filtrar por tipo (VACATION, SICK_LEAVE, etc)",
+              "title": "Tipo"
+            },
+            "description": "Filtrar por tipo (VACATION, SICK_LEAVE, etc)"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Filtrar por estado (pending, approved, rejected, cancelled)",
+              "title": "Status"
+            },
+            "description": "Filtrar por estado (pending, approved, rejected, cancelled)"
+          },
+          {
+            "name": "fecha_desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Fecha inicio del rango (YYYY-MM-DD)",
+              "title": "Fecha Desde"
+            },
+            "description": "Fecha inicio del rango (YYYY-MM-DD)"
+          },
+          {
+            "name": "fecha_hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [{ "type": "string" }, { "type": "null" }],
+              "description": "Fecha fin del rango (YYYY-MM-DD)",
+              "title": "Fecha Hasta"
+            },
+            "description": "Fecha fin del rango (YYYY-MM-DD)"
+          },
+          {
+            "name": "activas_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Solo solicitudes actualmente en curso",
+              "default": false,
+              "title": "Activas Only"
+            },
+            "description": "Solo solicitudes actualmente en curso"
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Registros a saltar (paginación)",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Registros a saltar (paginación)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Máximo de registros a retornar",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Máximo de registros a retornar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SolicitudListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/me/balance": {
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Consultar balance de vacaciones",
+        "description": "Obtener información completa del balance de vacaciones disponible.",
+        "operationId": "get_my_balance_api_vacaciones_me_balance_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/VacationBalance" } }
+            }
+          }
+        },
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/api/vacaciones/pending": {
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "[HR] Listar solicitudes pendientes",
+        "description": "Obtener todas las solicitudes pendientes de revisión.",
+        "operationId": "get_pending_solicitudes_api_vacaciones_pending_get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Registros a saltar (paginación)",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Registros a saltar (paginación)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Máximo de registros a retornar",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Máximo de registros a retornar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SolicitudListResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/{solicitud_id}": {
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Obtener solicitud por ID",
+        "description": "Consultar detalles de una solicitud específica.",
+        "operationId": "get_solicitud_api_vacaciones__solicitud_id__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "solicitud_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Solicitud Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Actualizar solicitud",
+        "description": "Modificar fechas o motivo de una solicitud propia pendiente.",
+        "operationId": "update_solicitud_api_vacaciones__solicitud_id__put",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "solicitud_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Solicitud Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/{solicitud_id}/cancel": {
+      "post": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "Cancelar solicitud",
+        "description": "Cancelar una solicitud propia pendiente.",
+        "operationId": "cancel_solicitud_api_vacaciones__solicitud_id__cancel_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "solicitud_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Solicitud Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/{solicitud_id}/review": {
+      "post": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "[HR] Aprobar o rechazar solicitud",
+        "description": "Revisar una solicitud pendiente, aprobándola o rechazándola.",
+        "operationId": "review_solicitud_api_vacaciones__solicitud_id__review_post",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "solicitud_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "Solicitud Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudReview" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SolicitudResponse" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vacaciones/balance/{user_id}": {
+      "get": {
+        "tags": ["Vacaciones", "Vacaciones"],
+        "summary": "[HR] Consultar balance de usuario",
+        "description": "Obtener balance de vacaciones de cualquier usuario.",
+        "operationId": "get_user_balance_api_vacaciones_balance__user_id__get",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "title": "User Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/VacationBalance" } }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health Check",
+        "description": "Verifica el estado de la aplicación.\n\nReturns:\n    dict: Estado de la aplicación",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": ["Root"],
+        "summary": "Read Root",
+        "description": "Endpoint raíz de la API.\n\nReturns:\n    dict: Información básica de la API",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FichajeApproval": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "description": "True para aprobar, False para rechazar"
+          },
+          "approval_notes": {
+            "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+            "title": "Approval Notes",
+            "description": "Notas opcionales sobre la decisión"
+          }
+        },
+        "type": "object",
+        "required": ["approved"],
+        "title": "FichajeApproval",
+        "description": "Request para aprobar o rechazar una corrección.",
+        "example": {
+          "approval_notes": "Corrección aprobada. Motivo justificado.",
+          "approved": true
+        }
+      },
+      "FichajeCheckIn": {
+        "properties": {
+          "notes": {
+            "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+            "title": "Notes",
+            "description": "Notas opcionales del check-in"
+          }
+        },
+        "type": "object",
+        "title": "FichajeCheckIn",
+        "description": "Request para registrar entrada (check-in)."
+      },
+      "FichajeCheckOut": {
+        "properties": {
+          "notes": {
+            "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+            "title": "Notes",
+            "description": "Notas opcionales del check-out"
+          }
+        },
+        "type": "object",
+        "title": "FichajeCheckOut",
+        "description": "Request para registrar salida (check-out)."
+      },
+      "FichajeCorrection": {
+        "properties": {
+          "check_in": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Check In",
+            "description": "Nueva fecha/hora de entrada"
+          },
+          "check_out": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Check Out",
+            "description": "Nueva fecha/hora de salida (opcional)"
+          },
+          "correction_reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Correction Reason",
+            "description": "Razón de la corrección (mínimo 10 caracteres)"
+          }
+        },
+        "type": "object",
+        "required": ["check_in", "correction_reason"],
+        "title": "FichajeCorrection",
+        "description": "Request para solicitar corrección de un fichaje.",
+        "example": {
+          "check_in": "2025-10-15T08:00:00",
+          "check_out": "2025-10-15T17:00:00",
+          "correction_reason": "Olvidé registrar la salida ayer. Salí a las 17:00."
+        }
+      },
+      "FichajeListResponse": {
+        "properties": {
+          "fichajes": {
+            "items": { "$ref": "#/components/schemas/FichajeResponse" },
+            "type": "array",
+            "title": "Fichajes"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total de fichajes que cumplen los filtros"
+          },
+          "page": { "type": "integer", "title": "Page", "description": "Página actual" },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size",
+            "description": "Tamaño de página"
+          },
+          "total_hours": {
+            "type": "number",
+            "title": "Total Hours",
+            "description": "Suma total de horas trabajadas en el periodo"
+          }
+        },
+        "type": "object",
+        "required": ["fichajes", "total", "page", "page_size", "total_hours"],
+        "title": "FichajeListResponse",
+        "description": "Respuesta paginada de fichajes con estadísticas.",
+        "example": { "fichajes": [], "page": 1, "page_size": 10, "total": 42, "total_hours": 168.5 }
+      },
+      "FichajeResponse": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "user_id": { "type": "integer", "title": "User Id" },
+          "user_email": { "type": "string", "title": "User Email" },
+          "user_full_name": { "type": "string", "title": "User Full Name" },
+          "check_in": { "type": "string", "format": "date-time", "title": "Check In" },
+          "check_out": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Check Out"
+          },
+          "hours_worked": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Hours Worked"
+          },
+          "status": { "$ref": "#/components/schemas/FichajeStatus" },
+          "notes": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Notes" },
+          "correction_reason": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Correction Reason"
+          },
+          "correction_requested_at": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Correction Requested At"
+          },
+          "approved_by": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Approved By"
+          },
+          "approved_at": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Approved At"
+          },
+          "approval_notes": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Approval Notes"
+          },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "user_email",
+          "user_full_name",
+          "check_in",
+          "check_out",
+          "hours_worked",
+          "status",
+          "notes",
+          "correction_reason",
+          "correction_requested_at",
+          "approved_by",
+          "approved_at",
+          "approval_notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "FichajeResponse",
+        "description": "Respuesta con datos completos de un fichaje."
+      },
+      "FichajeStats": {
+        "properties": {
+          "total_fichajes": {
+            "type": "integer",
+            "title": "Total Fichajes",
+            "description": "Total de fichajes"
+          },
+          "fichajes_completos": {
+            "type": "integer",
+            "title": "Fichajes Completos",
+            "description": "Fichajes con check-in y check-out"
+          },
+          "fichajes_incompletos": {
+            "type": "integer",
+            "title": "Fichajes Incompletos",
+            "description": "Fichajes solo con check-in"
+          },
+          "pending_corrections": {
+            "type": "integer",
+            "title": "Pending Corrections",
+            "description": "Correcciones pendientes de aprobación"
+          },
+          "total_hours": {
+            "type": "number",
+            "title": "Total Hours",
+            "description": "Total de horas trabajadas"
+          },
+          "average_hours_per_day": {
+            "type": "number",
+            "title": "Average Hours Per Day",
+            "description": "Promedio de horas por día trabajado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_fichajes",
+          "fichajes_completos",
+          "fichajes_incompletos",
+          "pending_corrections",
+          "total_hours",
+          "average_hours_per_day"
+        ],
+        "title": "FichajeStats",
+        "description": "Estadísticas de fichajes de un usuario o periodo.",
+        "example": {
+          "average_hours_per_day": 8.88,
+          "fichajes_completos": 19,
+          "fichajes_incompletos": 1,
+          "pending_corrections": 0,
+          "total_fichajes": 20,
+          "total_hours": 168.5
+        }
+      },
+      "FichajeStatus": {
+        "type": "string",
+        "enum": ["valid", "pending_correction", "corrected", "rejected"],
+        "title": "FichajeStatus",
+        "description": "Estados posibles de un fichaje."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "SolicitudCreate": {
+        "properties": {
+          "tipo": { "$ref": "#/components/schemas/SolicitudTipo" },
+          "fecha_inicio": { "type": "string", "format": "date", "title": "Fecha Inicio" },
+          "fecha_fin": { "type": "string", "format": "date", "title": "Fecha Fin" },
+          "motivo": { "type": "string", "maxLength": 1000, "minLength": 10, "title": "Motivo" }
+        },
+        "type": "object",
+        "required": ["tipo", "fecha_inicio", "fecha_fin", "motivo"],
+        "title": "SolicitudCreate",
+        "description": "Request para crear solicitud de vacaciones/ausencia."
+      },
+      "SolicitudListResponse": {
+        "properties": {
+          "solicitudes": {
+            "items": { "$ref": "#/components/schemas/SolicitudResponse" },
+            "type": "array",
+            "title": "Solicitudes"
+          },
+          "total": { "type": "integer", "title": "Total" },
+          "skip": { "type": "integer", "title": "Skip" },
+          "limit": { "type": "integer", "title": "Limit" }
+        },
+        "type": "object",
+        "required": ["solicitudes", "total", "skip", "limit"],
+        "title": "SolicitudListResponse",
+        "description": "Respuesta con lista paginada de solicitudes."
+      },
+      "SolicitudResponse": {
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "user_id": { "type": "integer", "title": "User Id" },
+          "user_email": { "type": "string", "title": "User Email" },
+          "user_full_name": { "type": "string", "title": "User Full Name" },
+          "tipo": { "$ref": "#/components/schemas/SolicitudTipo" },
+          "fecha_inicio": { "type": "string", "format": "date", "title": "Fecha Inicio" },
+          "fecha_fin": { "type": "string", "format": "date", "title": "Fecha Fin" },
+          "dias_solicitados": { "type": "integer", "title": "Dias Solicitados" },
+          "motivo": { "type": "string", "title": "Motivo" },
+          "status": { "$ref": "#/components/schemas/SolicitudStatus" },
+          "reviewed_by": {
+            "anyOf": [{ "type": "integer" }, { "type": "null" }],
+            "title": "Reviewed By"
+          },
+          "reviewed_by_name": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Reviewed By Name"
+          },
+          "reviewed_at": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Reviewed At"
+          },
+          "comentarios_revision": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Comentarios Revision"
+          },
+          "is_pending": { "type": "boolean", "title": "Is Pending" },
+          "is_approved": { "type": "boolean", "title": "Is Approved" },
+          "is_active": { "type": "boolean", "title": "Is Active" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "user_email",
+          "user_full_name",
+          "tipo",
+          "fecha_inicio",
+          "fecha_fin",
+          "dias_solicitados",
+          "motivo",
+          "status",
+          "reviewed_by",
+          "reviewed_by_name",
+          "reviewed_at",
+          "comentarios_revision",
+          "is_pending",
+          "is_approved",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SolicitudResponse",
+        "description": "Respuesta con datos de solicitud."
+      },
+      "SolicitudReview": {
+        "properties": {
+          "approved": { "type": "boolean", "title": "Approved" },
+          "comentarios_revision": {
+            "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+            "title": "Comentarios Revision"
+          }
+        },
+        "type": "object",
+        "required": ["approved"],
+        "title": "SolicitudReview",
+        "description": "Request para aprobar/rechazar solicitud (solo HR)."
+      },
+      "SolicitudStatus": {
+        "type": "string",
+        "enum": ["pending", "approved", "rejected", "cancelled"],
+        "title": "SolicitudStatus",
+        "description": "Estados posibles de una solicitud."
+      },
+      "SolicitudTipo": {
+        "type": "string",
+        "enum": ["vacation", "sick_leave", "personal", "other"],
+        "title": "SolicitudTipo",
+        "description": "Tipos de solicitud."
+      },
+      "SolicitudUpdate": {
+        "properties": {
+          "fecha_inicio": {
+            "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+            "title": "Fecha Inicio"
+          },
+          "fecha_fin": {
+            "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+            "title": "Fecha Fin"
+          },
+          "motivo": {
+            "anyOf": [{ "type": "string", "maxLength": 1000, "minLength": 10 }, { "type": "null" }],
+            "title": "Motivo"
+          }
+        },
+        "type": "object",
+        "title": "SolicitudUpdate",
+        "description": "Request para actualizar solicitud (solo si está pendiente)."
+      },
+      "UserChangePassword": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "title": "Current Password",
+            "description": "Contraseña actual",
+            "examples": ["OldPassword123!"]
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 8,
+            "title": "New Password",
+            "description": "Nueva contraseña (mínimo 8 caracteres)",
+            "examples": ["NewPassword123!"]
+          }
+        },
+        "type": "object",
+        "required": ["current_password", "new_password"],
+        "title": "UserChangePassword",
+        "description": "Schema para cambiar la contraseña."
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email del usuario",
+            "examples": ["usuario@example.com"]
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Full Name",
+            "description": "Nombre completo del usuario",
+            "examples": ["Juan Pérez"]
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 8,
+            "title": "Password",
+            "description": "Contraseña del usuario (mínimo 8 caracteres)",
+            "examples": ["SecurePass123!"]
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "description": "Rol del usuario",
+            "default": "employee"
+          }
+        },
+        "type": "object",
+        "required": ["email", "full_name", "password"],
+        "title": "UserCreate",
+        "description": "Schema para crear un usuario."
+      },
+      "UserListResponse": {
+        "properties": {
+          "users": {
+            "items": { "$ref": "#/components/schemas/UserResponse" },
+            "type": "array",
+            "title": "Users",
+            "description": "Lista de usuarios"
+          },
+          "total": { "type": "integer", "title": "Total", "description": "Total de usuarios" },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page",
+            "description": "Página actual"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page Size",
+            "description": "Tamaño de página"
+          }
+        },
+        "type": "object",
+        "required": ["users", "total", "page", "page_size"],
+        "title": "UserListResponse",
+        "description": "Schema de respuesta para lista de usuarios."
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email del usuario",
+            "examples": ["usuario@example.com"]
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "Contraseña del usuario",
+            "examples": ["SecurePass123!"]
+          }
+        },
+        "type": "object",
+        "required": ["email", "password"],
+        "title": "UserLogin",
+        "description": "Schema para login de usuario."
+      },
+      "UserResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email del usuario",
+            "examples": ["usuario@example.com"]
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Full Name",
+            "description": "Nombre completo del usuario",
+            "examples": ["Juan Pérez"]
+          },
+          "id": { "type": "integer", "title": "Id", "description": "ID del usuario" },
+          "role": { "$ref": "#/components/schemas/UserRole", "description": "Rol del usuario" },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Si el usuario está activo"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Fecha de creación"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Fecha de última actualización"
+          }
+        },
+        "type": "object",
+        "required": ["email", "full_name", "id", "role", "is_active", "created_at", "updated_at"],
+        "title": "UserResponse",
+        "description": "Schema de respuesta con información pública del usuario."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": ["employee", "hr"],
+        "title": "UserRole",
+        "description": "Roles de usuario en el sistema.\n\n- EMPLOYEE: Empleado estándar (puede ver sus propios datos)\n- HR: Recursos Humanos (acceso completo al sistema)"
+      },
+      "UserUpdate": {
+        "properties": {
+          "email": {
+            "anyOf": [{ "type": "string", "format": "email" }, { "type": "null" }],
+            "title": "Email",
+            "description": "Nuevo email del usuario"
+          },
+          "full_name": {
+            "anyOf": [{ "type": "string", "maxLength": 255, "minLength": 1 }, { "type": "null" }],
+            "title": "Full Name",
+            "description": "Nuevo nombre completo"
+          },
+          "password": {
+            "anyOf": [{ "type": "string", "maxLength": 100, "minLength": 8 }, { "type": "null" }],
+            "title": "Password",
+            "description": "Nueva contraseña"
+          },
+          "role": {
+            "anyOf": [{ "$ref": "#/components/schemas/UserRole" }, { "type": "null" }],
+            "description": "Nuevo rol"
+          },
+          "is_active": {
+            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+            "title": "Is Active",
+            "description": "Nuevo estado activo"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate",
+        "description": "Schema para actualizar un usuario."
+      },
+      "UserUpdateSelf": {
+        "properties": {
+          "full_name": {
+            "anyOf": [{ "type": "string", "maxLength": 255, "minLength": 1 }, { "type": "null" }],
+            "title": "Full Name",
+            "description": "Nuevo nombre completo"
+          },
+          "password": {
+            "anyOf": [{ "type": "string", "maxLength": 100, "minLength": 8 }, { "type": "null" }],
+            "title": "Password",
+            "description": "Nueva contraseña"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdateSelf",
+        "description": "Schema para que un usuario actualice sus propios datos.\n\nNo permite cambiar rol ni estado activo."
+      },
+      "VacationBalance": {
+        "properties": {
+          "user_id": { "type": "integer", "title": "User Id" },
+          "user_email": { "type": "string", "title": "User Email" },
+          "user_full_name": { "type": "string", "title": "User Full Name" },
+          "dias_anuales": { "type": "integer", "title": "Dias Anuales" },
+          "dias_disponibles": { "type": "number", "title": "Dias Disponibles" },
+          "dias_tomados": { "type": "integer", "title": "Dias Tomados" },
+          "dias_pendientes": { "type": "integer", "title": "Dias Pendientes" },
+          "solicitudes_pendientes": { "type": "integer", "title": "Solicitudes Pendientes" },
+          "solicitudes_aprobadas": { "type": "integer", "title": "Solicitudes Aprobadas" },
+          "proximo_periodo": {
+            "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+            "title": "Proximo Periodo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "user_email",
+          "user_full_name",
+          "dias_anuales",
+          "dias_disponibles",
+          "dias_tomados",
+          "dias_pendientes",
+          "solicitudes_pendientes",
+          "solicitudes_aprobadas",
+          "proximo_periodo"
+        ],
+        "title": "VacationBalance",
+        "description": "Balance de vacaciones de un empleado."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": { "HTTPBearer": { "type": "http", "scheme": "bearer" } }
+  }
+}
