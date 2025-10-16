@@ -3,6 +3,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.fichaje import Fichaje, FichajeStatus
@@ -42,7 +43,14 @@ class FichajeRepository:
         Returns:
             Fichaje si existe, None en caso contrario.
         """
-        statement = select(Fichaje).where(Fichaje.id == fichaje_id)
+        statement = (
+            select(Fichaje)
+            .options(
+                selectinload(Fichaje.user),
+                selectinload(Fichaje.approved_by_user),
+            )
+            .where(Fichaje.id == fichaje_id)
+        )
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
@@ -88,7 +96,10 @@ class FichajeRepository:
         Returns:
             Lista de fichajes que cumplen los criterios.
         """
-        statement = select(Fichaje)
+        statement = select(Fichaje).options(
+            selectinload(Fichaje.user),
+            selectinload(Fichaje.approved_by_user),
+        )
 
         # Aplicar filtros
         if user_id is not None:
@@ -163,12 +174,22 @@ class FichajeRepository:
             fichaje: Instancia de Fichaje con los datos actualizados.
 
         Returns:
-            Fichaje actualizado.
+            Fichaje actualizado con relaciones cargadas.
         """
         self.session.add(fichaje)
-        await self.session.commit()
-        await self.session.refresh(fichaje)
-        return fichaje
+        await self.session.flush()
+
+        # Recargar con relaciones para evitar lazy loading
+        stmt = (
+            select(Fichaje)
+            .options(
+                selectinload(Fichaje.user),
+                selectinload(Fichaje.approved_by_user),
+            )
+            .where(Fichaje.id == fichaje.id)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def calculate_total_hours(
         self,
