@@ -213,6 +213,60 @@ export class FichajesService {
   }
 
   /**
+   * Carga TODOS los fichajes (solo para RRHH)
+   * Usa el endpoint /fichajes/ que es accesible solo para usuarios HR
+   */
+  async loadAllFichajes(params: FichajeQueryParams & { userId?: number; status?: string; incompleteOnly?: boolean } = {}): Promise<void> {
+    try {
+      this.loadingSignal.set(true);
+      this.errorSignal.set(null);
+
+      const queryParams: any = {
+        skip: params.skip ?? (this.currentPageSignal() - 1) * this.pageSizeSignal(),
+        limit: params.limit ?? this.pageSizeSignal()
+      };
+
+      if (params.userId) {
+        queryParams.user_id = params.userId;
+      }
+
+      if (params.dateFrom) {
+        queryParams.date_from = params.dateFrom;
+      }
+
+      if (params.dateTo) {
+        queryParams.date_to = params.dateTo;
+      }
+
+      if (params.status) {
+        queryParams.status = params.status;
+      }
+
+      if (params.incompleteOnly) {
+        queryParams.incomplete_only = params.incompleteOnly;
+      }
+
+      const response = await firstValueFrom(
+        this.apiService.get<FichajeListResponseApi>('/fichajes/', queryParams)
+      );
+
+      const fichajeList = mapFichajeListResponseApiToFichajeListResponse(response);
+
+      this.fichajesSignal.set(fichajeList.fichajes);
+      this.totalSignal.set(fichajeList.total);
+      this.totalHoursSignal.set(fichajeList.totalHours);
+      this.currentPageSignal.set(fichajeList.page);
+      this.pageSizeSignal.set(fichajeList.pageSize);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Error al cargar fichajes';
+      this.errorSignal.set(errorMessage);
+      throw error;
+    } finally {
+      this.loadingSignal.set(false);
+    }
+  }
+
+  /**
    * Navega a una página específica
    */
   async goToPage(page: number): Promise<void> {

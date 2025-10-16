@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsuariosService } from '../services/usuarios.service';
+import { UsuariosService } from '../../services/usuarios.service';
 import { UsuarioFormComponent } from '../usuario-form/usuario-form.component';
 import type { User, UserCreate, UserUpdate } from '@core/models/user.model';
 

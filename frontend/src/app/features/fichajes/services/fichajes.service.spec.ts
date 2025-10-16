@@ -524,5 +524,93 @@ describe('FichajesService', () => {
       expect(service.error()).toBeTruthy();
     });
   });
-});
 
+  describe('loadAllFichajes (RRHH)', () => {
+    it('should load all fichajes using /fichajes/ endpoint', fakeAsync(async () => {
+      const loadPromise = service.loadAllFichajes();
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      expect(req.request.method).toBe('GET');
+      expect(req.request.params.get('skip')).toBe('0');
+      expect(req.request.params.get('limit')).toBe('10');
+
+      req.flush(mockFichajeListApi);
+
+      tick();
+      await loadPromise;
+
+      expect(service.fichajes().length).toBe(mockFichajeListApi.fichajes.length);
+      expect(service.total()).toBe(mockFichajeListApi.total);
+    }));
+
+    it('should filter by status parameter', fakeAsync(async () => {
+      const loadPromise = service.loadAllFichajes({ status: 'pending_correction' });
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      expect(req.request.params.get('status')).toBe('pending_correction');
+
+      req.flush(mockFichajeListApi);
+
+      tick();
+      await loadPromise;
+
+      expect(service.fichajes()).toBeDefined();
+    }));
+
+    it('should filter by user_id parameter', fakeAsync(async () => {
+      const loadPromise = service.loadAllFichajes({ userId: 5 });
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      expect(req.request.params.get('user_id')).toBe('5');
+
+      req.flush(mockFichajeListApi);
+
+      tick();
+      await loadPromise;
+
+      expect(service.fichajes()).toBeDefined();
+    }));
+
+    it('should handle date filters', fakeAsync(async () => {
+      const loadPromise = service.loadAllFichajes({
+        dateFrom: '2025-10-01',
+        dateTo: '2025-10-31'
+      });
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      expect(req.request.params.get('date_from')).toBe('2025-10-01');
+      expect(req.request.params.get('date_to')).toBe('2025-10-31');
+
+      req.flush(mockFichajeListApi);
+
+      tick();
+      await loadPromise;
+
+      expect(service.fichajes()).toBeDefined();
+    }));
+
+    it('should handle incomplete_only filter', fakeAsync(async () => {
+      const loadPromise = service.loadAllFichajes({ incompleteOnly: true });
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      expect(req.request.params.get('incomplete_only')).toBe('true');
+
+      req.flush(mockFichajeListApi);
+
+      tick();
+      await loadPromise;
+
+      expect(service.fichajes()).toBeDefined();
+    }));
+
+    it('should handle error when loading all fichajes', async () => {
+      const loadPromise = service.loadAllFichajes();
+
+      const req = httpMock.expectOne((r) => r.url.includes('/fichajes/') && !r.url.includes('/fichajes/me'));
+      req.flush({ error: 'Unauthorized' }, { status: 403, statusText: 'Forbidden' });
+
+      await expectAsync(loadPromise).toBeRejected();
+      expect(service.error()).toBeTruthy();
+    });
+  });
+});

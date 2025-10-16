@@ -27,8 +27,8 @@ describe('RrhhDashboardComponent', () => {
     expect(title?.textContent).toBe('Administración RRHH');
   });
 
-  it('should display 2 feature cards', () => {
-    expect(component.features.length).toBe(2);
+  it('should display 3 feature cards', () => {
+    expect(component.features.length).toBe(3);
   });
 
   it('should have Gestión de Vacaciones feature', () => {
@@ -37,6 +37,14 @@ describe('RrhhDashboardComponent', () => {
     expect(aprobacionesFeature?.route).toBe('/rrhh/aprobaciones');
     expect(aprobacionesFeature?.icon).toBe('📋');
     expect(aprobacionesFeature?.color).toBe('#667eea');
+  });
+
+  it('should have Gestión de Correcciones feature', () => {
+    const correccionesFeature = component.features.find(f => f.title === 'Gestión de Fichajes');
+    expect(correccionesFeature).toBeDefined();
+    expect(correccionesFeature?.route).toBe('/rrhh/correcciones');
+    expect(correccionesFeature?.icon).toBe('✏️');
+    expect(correccionesFeature?.color).toBe('#f59e0b');
   });
 
   it('should have Gestión de Usuarios feature', () => {
@@ -50,6 +58,6 @@ describe('RrhhDashboardComponent', () => {
   it('should render dashboard cards in template', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const cards = compiled.querySelectorAll('app-dashboard-card');
-    expect(cards.length).toBe(2);
+    expect(cards.length).toBe(3);
   });
 });

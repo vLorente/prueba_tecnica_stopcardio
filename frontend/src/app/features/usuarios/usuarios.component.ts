@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UsuariosListComponent } from './usuarios-list/usuarios-list.component';
+import { UsuariosListComponent } from './components/usuarios-list/usuarios-list.component';
 
 /**
  * UsuariosComponent

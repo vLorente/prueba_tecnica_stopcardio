@@ -1,0 +1,217 @@
+<div class="fichajes-manage-container">
+  <div class="header">
+    <h1>Gestión de Correcciones de Fichajes</h1>
+    <p class="subtitle">Solicitudes pendientes de aprobación</p>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando solicitudes...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="alert alert-error">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- No hay solicitudes pendientes -->
+  @if (!loading() && !hasPendingCorrections()) {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3>No hay solicitudes pendientes</h3>
+      <p>Todas las correcciones han sido procesadas</p>
+    </div>
+  }
+
+  <!-- Tabla de solicitudes -->
+  @if (!loading() && hasPendingCorrections()) {
+    <div class="corrections-table-container">
+      <table class="corrections-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Solicitado</th>
+            <th>Datos Originales</th>
+            <th>Datos Solicitados</th>
+            <th>Motivo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fichaje of pendingCorrections(); track fichaje.id) {
+            <tr>
+              <!-- Usuario -->
+              <td>
+                <div class="user-info">
+                  <div class="user-name">{{ fichaje.userFullName }}</div>
+                  <div class="user-email">{{ fichaje.userEmail }}</div>
+                </div>
+              </td>
+
+              <!-- Fecha de solicitud -->
+              <td>
+                <div class="date-info">
+                  {{ formatDate(fichaje.correctionRequestedAt) }}
+                </div>
+              </td>
+
+              <!-- Datos originales -->
+              <td>
+                <div class="datetime-group">
+                  <div class="datetime-row">
+                    <span class="label">Entrada:</span>
+                    <span class="value">{{ formatDate(fichaje.checkIn) }}</span>
+                  </div>
+                  <div class="datetime-row">
+                    <span class="label">Salida:</span>
+                    <span class="value">{{ formatDate(fichaje.checkOut) }}</span>
+                  </div>
+                  <div class="datetime-row hours">
+                    <span class="label">Horas:</span>
+                    <span class="value">{{ calculateHours(fichaje.checkIn, fichaje.checkOut) }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Datos solicitados -->
+              <td>
+                <div class="datetime-group highlight">
+                  <div class="datetime-row">
+                    <span class="label">Entrada:</span>
+                    <span class="value changed">Nueva fecha/hora</span>
+                  </div>
+                  <div class="datetime-row">
+                    <span class="label">Salida:</span>
+                    <span class="value changed">Nueva fecha/hora</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Motivo -->
+              <td>
+                <div class="reason-text">
+                  {{ fichaje.correctionReason }}
+                </div>
+              </td>
+
+              <!-- Acciones -->
+              <td>
+                <div class="actions">
+                  <button
+                    class="btn btn-approve"
+                    (click)="openApprovalModal(fichaje)"
+                    title="Aprobar corrección"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Aprobar
+                  </button>
+                  <button
+                    class="btn btn-reject"
+                    (click)="openRejectionModal(fichaje)"
+                    title="Rechazar corrección"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Rechazar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Modal de confirmación -->
+  @if (isModalOpen()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>
+            @if (modalAction() === 'approve') {
+              Aprobar Corrección
+            } @else {
+              Rechazar Corrección
+            }
+          </h2>
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeModal()"
+            [disabled]="isProcessing()"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @if (selectedFichaje()) {
+            <div class="fichaje-details">
+              <p><strong>Usuario:</strong> {{ selectedFichaje()!.userFullName }}</p>
+              <p><strong>Motivo:</strong> {{ selectedFichaje()!.correctionReason }}</p>
+            </div>
+          }
+
+          <div class="form-group">
+            <label for="modalNotes">
+              Comentarios
+              @if (modalAction() === 'reject') {
+                (recomendado)
+              } @else {
+                (opcional)
+              }
+            </label>
+            <textarea
+              id="modalNotes"
+              [value]="modalNotes()"
+              (input)="updateModalNotes($any($event.target).value)"
+              rows="4"
+              class="form-control"
+              placeholder="Escribe tus comentarios aquí..."
+              [disabled]="isProcessing()"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeModal()"
+              [disabled]="isProcessing()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [class]="modalAction() === 'approve' ? 'btn btn-primary' : 'btn btn-danger'"
+              (click)="processAction()"
+              [disabled]="isProcessing()"
+            >
+              @if (isProcessing()) {
+                <span class="spinner-small"></span>
+                Procesando...
+              } @else {
+                @if (modalAction() === 'approve') {
+                  Aprobar
+                } @else {
+                  Rechazar
+                }
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

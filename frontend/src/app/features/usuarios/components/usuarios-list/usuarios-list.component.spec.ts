@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { UsuariosListComponent } from './usuarios-list.component';
-import { UsuariosService } from '../services/usuarios.service';
+import { UsuariosService } from '../../services/usuarios.service';
 import type { User } from '@core/models/user.model';
 
 describe('UsuariosListComponent', () => {

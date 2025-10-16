@@ -50,6 +50,11 @@ export const routes: Routes = [
         canActivate: [hrGuard]
       },
       {
+        path: 'rrhh/correcciones',
+        loadComponent: () => import('@/app/features/fichajes/components/fichajes-manage/fichajes-manage.component').then(m => m.FichajesManageComponent),
+        canActivate: [hrGuard]
+      },
+      {
         path: 'rrhh/usuarios',
         loadComponent: () => import('@features/usuarios/usuarios.component').then(m => m.UsuariosComponent),
         canActivate: [hrGuard]

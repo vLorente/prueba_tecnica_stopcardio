@@ -26,6 +26,13 @@ export class RrhhDashboardComponent {
       color: '#667eea'
     },
     {
+      title: 'Gestión de Fichajes',
+      description: 'Revisar y aprobar/rechazar solicitudes de corrección de fichajes',
+      icon: '✏️',
+      route: '/rrhh/correcciones',
+      color: '#f59e0b'
+    },
+    {
       title: 'Gestión de Usuarios',
       description: 'Administrar empleados, roles y permisos del sistema',
       icon: '👥',

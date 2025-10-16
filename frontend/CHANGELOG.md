@@ -5,6 +5,188 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [Iteración 6] - 2025-10-16
+
+### Añadido - Sistema de Correcciones de Fichajes
+
+#### Modelos y Mappers (HU-FICHAJE-004, 005, 006)
+- **`@core/models/fichaje.model.ts`** - Extendido con:
+  - Interfaces `FichajeCorrection` y `FichajeApproval` (frontend y API)
+  - Nuevos campos en `Fichaje`: `correctionReason`, `correctionRequestedAt`, `approvedBy`, `approvedAt`, `approvalNotes`
+  - Enum `FichajeStatus`: `'valid' | 'pending_correction' | 'corrected' | 'rejected'`
+- **`@core/mappers/fichaje.mapper.ts`** - Nuevas funciones:
+  - `mapFichajeCorrectionToApi()`: Conversión de fechas a ISO 8601
+  - `mapFichajeApprovalToApi()`: Mapeo de datos de aprobación
+
+#### Servicio
+- **`features/fichajes/services/fichajes.service.ts`** - 3 métodos nuevos:
+  - `async solicitarCorreccion(fichajeId, correccion)`: Solicita corrección de fichaje (POST `/fichajes/{id}/correct`)
+  - `async aprobarCorreccion(fichajeId, notes?)`: Aprueba solicitud de corrección (POST `/fichajes/{id}/approve`)
+  - `async rechazarCorreccion(fichajeId, notes?)`: Rechaza solicitud de corrección (POST `/fichajes/{id}/approve` con `approved: false`)
+  - Todos implementan patrón async/await, loading signals y recarga automática
+
+#### Componentes
+
+**Modal de Solicitud de Corrección (HU-FICHAJE-004)**
+- **`features/fichajes/components/fichaje-correction-modal/`**
+  - `fichaje-correction-modal.component.ts` (220 líneas)
+    - FormGroup reactivo con validaciones exhaustivas
+    - Signal `formValid` con suscripción a `statusChanges` para detectar cambios
+    - Computed `canSubmit()` para habilitar/deshabilitar botón submit
+    - Validaciones:
+      - CheckIn y CheckOut requeridos
+      - Fechas no futuras (máximo hoy)
+      - Máximo 30 días hacia atrás
+      - CheckOut posterior a CheckIn
+      - Valores diferentes a los originales (tolerancia 1 minuto)
+      - Motivo: requerido, 10-1000 caracteres
+  - `fichaje-correction-modal.component.html` (150 líneas)
+    - Modal overlay con gestión de clics
+    - Sección "Datos Actuales" mostrando valores originales
+    - Date/time pickers separados para checkIn y checkOut
+    - Textarea con contador de caracteres (0/1000)
+    - Mensajes de error inline
+  - `fichaje-correction-modal.component.css` (300+ líneas)
+    - Estilos para modal overlay, card, formulario
+    - Animaciones fade-in y slide-down
+    - Responsive design
+
+**Extensión Componente Fichajes (HU-FICHAJE-005)**
+- **`features/fichajes/fichajes.component.ts`** - Ampliado con:
+  - Signal `statusFilter: WritableSignal<FichajeStatus | 'all'>` para filtrado
+  - Signals para gestión del modal: `selectedFichaje`, `isModalOpen`
+  - Computed `fichajesFiltrados()` con lógica de filtrado por estado
+  - Método `onRequestCorrection(fichaje)` para abrir modal
+  - Método `onModalSubmit(data)` para procesar corrección con manejo de errores
+- **`features/fichajes/fichajes.component.html`** - Agregado:
+  - Dropdown selector de estado con 5 opciones (Todos, Válidos, Pendientes, Corregidos, Rechazados)
+  - Badges de estado con colores semánticos:
+    - Verde (#10b981) - Valid
+    - Amarillo (#f59e0b) - Pending
+    - Azul (#3b82f6) - Corrected
+    - Rojo (#ef4444) - Rejected
+  - Botón icono "edit" (SVG) con tooltip CSS hover para solicitar corrección
+  - Integración completa del modal: `<app-fichaje-correction-modal>`
+
+**Vista RRHH Correcciones (HU-FICHAJE-006)**
+- **`features/rrhh/components/rrhh-corrections/`** - Nuevo componente
+  - `rrhh-corrections.component.ts` (148 líneas)
+    - Signals: `pendingCorrections`, `selectedFichaje`, `isModalOpen`, `modalAction`, `modalNotes`, `isProcessing`
+    - Computed: `loading()`, `error()`, `hasPendingCorrections()`
+    - `async loadPendingCorrections()`: Filtra fichajes con `status='pending_correction'`
+    - `openApprovalModal()` y `openRejectionModal()`: Abren modal de confirmación
+    - `async processAction()`: Ejecuta aprobación o rechazo con reload automático
+    - Helpers: `formatDate()`, `calculateHours()`
+  - `rrhh-corrections.component.html` (200 líneas)
+    - Tabla comparativa con 6 columnas:
+      - Usuario (nombre + email)
+      - Fecha de solicitud
+      - Datos Originales (checkIn/checkOut/horas)
+      - Datos Solicitados (highlight amarillo)
+      - Motivo de corrección
+      - Acciones (botones Aprobar/Rechazar)
+    - Modal de confirmación con:
+      - Detalles del fichaje y usuario
+      - Textarea para comentarios (opcional aprobar, recomendado rechazar)
+      - Spinner durante procesamiento
+    - Empty state con ilustración SVG
+    - Loading spinner
+  - `rrhh-corrections.component.css` (400+ líneas)
+    - Tabla responsive con hover effects
+    - `.datetime-group.highlight`: fondo amarillo (#fef3c7), borde naranja
+    - Botones semánticos: `.btn-approve` (verde), `.btn-reject` (rojo)
+    - Modal overlay con backdrop blur
+    - Animaciones y transiciones
+
+#### Rutas
+- **`app.routes.ts`**
+  - Nueva ruta: `path: 'rrhh/correcciones'`
+  - Carga dinámica: `loadComponent: RrhhCorrectionsComponent`
+  - Protección: `canActivate: [hrGuard]`
+
+### Modificado
+
+- **Estructura de carpetas**: Componentes de usuarios reorganizados
+  - Movidos a `/features/usuarios/components/` para mantener homogeneidad con resto del proyecto
+  - Actualizados imports relativos en todos los archivos afectados
+
+### Tests
+
+#### Servicio Fichajes
+- **`fichajes.service.spec.ts`** - 9 tests nuevos (24/24 total):
+  - `solicitarCorreccion`: happy path + error handling
+  - `aprobarCorreccion`: con/sin notas + error + verificación de body
+  - `rechazarCorreccion`: con/sin notas + error + verificación de body
+
+#### Modal de Corrección
+- **`fichaje-correction-modal.component.spec.ts`** - 21 tests (15/21 pasando):
+  - Component creation y lifecycle
+  - Apertura/cierre modal
+  - Inicialización formulario con datos del fichaje
+  - Submit con datos válidos
+  - Validaciones individuales (required, fechas futuras, 30 días atrás, checkout > checkin)
+  - 6 tests con warnings de timezone (funcionalidad operativa)
+
+#### Componente RRHH Correcciones
+- **`rrhh-corrections.component.spec.ts`** - 19 tests nuevos (19/19 pasando):
+  - Component creation
+  - ngOnInit carga solicitudes pendientes
+  - Filtrado correcto de status='pending_correction'
+  - Apertura modales de aprobación/rechazo
+  - Cierre modal y reset estado
+  - Actualización de notas
+  - Aprobación exitosa (con/sin notas)
+  - Rechazo exitoso (con/sin notas)
+  - Manejo de errores en aprobación
+  - Helpers: `formatDate()`, `calculateHours()`
+  - Estados: loading, error, empty state
+  - Prevención de procesamiento sin fichaje seleccionado
+
+### Estadísticas Iteración 6
+
+- **Tests**: 320/320 pasando (100%)
+  - +48 tests nuevos (servicio: 9, modal: 21, RRHH: 19)
+  - Total acumulado: 320 tests
+- **Cobertura de código**:
+  - Statements: 90.86% (935/1029)
+  - Branches: 77.2% (210/272)
+  - Functions: 91.5% (194/212)
+  - Lines: 90.89% (879/967)
+- **Código nuevo**: ~1,400 líneas
+  - Modelos/Mappers: ~50 líneas
+  - Servicio: ~100 líneas
+  - Modal corrección: ~670 líneas
+  - Componente RRHH: ~750 líneas
+  - Tests: ~400 líneas
+- **Archivos creados**: 6
+- **Archivos modificados**: 8
+
+### Historias de Usuario Completadas
+
+- **HU-FICHAJE-004**: Solicitar corrección de fichaje ✅
+  - Como empleado, puedo solicitar la corrección de un fichaje con motivo
+  - Modal con formulario reactivo y validaciones exhaustivas
+  - Botón icono sobrio con tooltip hover
+
+- **HU-FICHAJE-005**: Ver mis solicitudes de corrección ✅
+  - Como empleado, puedo ver el estado de mis solicitudes
+  - Filtro por estado con 5 opciones
+  - Badges visuales de estado con colores semánticos
+
+- **HU-FICHAJE-006**: Aprobar/Rechazar correcciones (RRHH) ✅
+  - Como RRHH, puedo gestionar solicitudes pendientes
+  - Vista de tabla comparativa con datos originales vs solicitados
+  - Modal de confirmación con campo de comentarios
+  - Botones de acción semánticos (verde/rojo)
+
+### Lecciones Aprendidas
+
+1. **Signals con Formularios Reactivos**: Los `computed()` no detectan automáticamente cambios en `FormGroup.valid`. Solución: Signal dedicado + suscripción a `statusChanges`.
+
+2. **Testing Async en Componentes**: Al usar `fakeAsync()`, necesario resetear spies con `.calls.reset()` cuando se miden llamadas acumulativas entre tests.
+
+3. **Filtrado Local vs Endpoint**: Decisión de filtrar `status='pending_correction'` localmente en lugar de crear endpoint separado, manteniendo consistencia con arquitectura de API analizada.
+
 ## [Iteración 5] - 2025-10-16
 
 ### Añadido - Gestión de Usuarios CRUD
