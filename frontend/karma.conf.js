@@ -2,7 +2,7 @@
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
 // Set Chrome binary path for dev container
-process.env.CHROME_BIN = process.env.CHROME_BIN || '/usr/local/bin/chrome';
+process.env.CHROME_BIN = process.env.CHROME_BIN || '/usr/bin/google-chrome-stable' || '/usr/bin/google-chrome';
 
 module.exports = function (config) {
   config.set({
