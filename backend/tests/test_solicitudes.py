@@ -274,6 +274,27 @@ class TestCreateSolicitud:
         assert response.status_code == status.HTTP_409_CONFLICT
         assert "solapa" in response.json()["detail"].lower()
 
+    async def test_create_solicitud_conflict_with_pending(
+        self,
+        authenticated_client: AsyncClient,
+        employee_solicitud_pending: Solicitud,
+    ):
+        """TC-V07b: Rechazar solicitud con conflicto de fechas pendientes."""
+        # Intentar crear solicitud que solape con una pendiente
+        solicitud_pendiente = employee_solicitud_pending
+        response = await authenticated_client.post(
+            "/api/vacaciones/",
+            json={
+                "tipo": "vacation",
+                "fecha_inicio": str(solicitud_pendiente.fecha_inicio + timedelta(days=1)),
+                "fecha_fin": str(solicitud_pendiente.fecha_fin + timedelta(days=3)),
+                "motivo": "Esta solicitud solapa con una solicitud pendiente de aprobación",
+            },
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert "solapa" in response.json()["detail"].lower()
+
     async def test_create_solicitud_only_weekends(
         self,
         authenticated_client: AsyncClient,

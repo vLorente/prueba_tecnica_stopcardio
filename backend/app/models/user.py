@@ -55,10 +55,10 @@ class User(BaseModel, table=True):
 
     # Balance de vacaciones
     dias_vacaciones_anuales: int = Field(
-        default=22, nullable=False, description="Días de vacaciones asignados por año"
+        default=24, nullable=False, description="Días de vacaciones asignados por año"
     )
     dias_vacaciones_disponibles: float = Field(
-        default=22.0, nullable=False, description="Balance actual de días de vacaciones disponibles"
+        default=24.0, nullable=False, description="Balance actual de días de vacaciones disponibles"
     )
 
     # Relaciones

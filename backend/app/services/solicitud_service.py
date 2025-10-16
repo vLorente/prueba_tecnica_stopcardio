@@ -29,7 +29,7 @@ from app.schemas.solicitud import (
 # RN-V02: Fecha de inicio debe ser futura o actual
 # RN-V03: Fecha de fin debe ser >= fecha de inicio
 # RN-V04: Motivo debe tener al menos 10 caracteres
-# RN-V05: No puede haber solapamiento con solicitudes aprobadas
+# RN-V05: No puede haber solapamiento con solicitudes pendientes o aprobadas del mismo usuario
 # RN-V06: Días solicitados calculados excluyendo fines de semana
 # RN-V07: Días solicitados no pueden exceder balance disponible (para tipo VACATION)
 # RN-V08: Solo el empleado puede crear/actualizar/cancelar sus solicitudes
@@ -139,7 +139,7 @@ class SolicitudService:
                 detail="La fecha de inicio debe ser hoy o posterior",
             )
 
-        # RN-V05: Verificar conflictos de fechas
+        # RN-V05: Verificar conflictos de fechas con solicitudes pendientes o aprobadas
         has_conflict = await self.solicitud_repo.check_date_conflict(
             user_id=user.id,  # type: ignore
             fecha_inicio=data.fecha_inicio,
@@ -148,7 +148,7 @@ class SolicitudService:
         if has_conflict:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Ya existe una solicitud aprobada que se solapa con estas fechas",
+                detail="Ya existe una solicitud pendiente o aprobada que se solapa con estas fechas",
             )
 
         # RN-V06: Calcular días hábiles
@@ -344,7 +344,7 @@ class SolicitudService:
             if has_conflict:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Ya existe una solicitud aprobada que se solapa con estas fechas",
+                    detail="Ya existe una solicitud pendiente o aprobada que se solapa con estas fechas",
                 )
 
             # RN-V06: Recalcular días hábiles

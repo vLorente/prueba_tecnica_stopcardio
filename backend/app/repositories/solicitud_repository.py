@@ -247,7 +247,10 @@ class SolicitudRepository:
         exclude_id: int | None = None,
     ) -> bool:
         """
-        Verifica si hay conflicto de fechas con solicitudes aprobadas.
+        Verifica si hay conflicto de fechas con solicitudes aprobadas o pendientes.
+
+        Regla de Negocio: No se puede crear/actualizar una solicitud si alguno de sus días
+        coincide con una solicitud del mismo usuario en estado PENDING o APPROVED.
 
         Args:
             user_id: ID del usuario
@@ -261,7 +264,12 @@ class SolicitudRepository:
         stmt = select(Solicitud).where(
             and_(
                 Solicitud.user_id == user_id,
-                Solicitud.status == SolicitudStatus.APPROVED,
+                # Verificar contra solicitudes PENDING o APPROVED
+                or_(
+                    Solicitud.status == SolicitudStatus.APPROVED,
+                    Solicitud.status == SolicitudStatus.PENDING,
+                ),
+                # Verificar solapamiento de fechas
                 or_(
                     # La nueva solicitud comienza durante una existente
                     and_(
