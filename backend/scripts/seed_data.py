@@ -255,21 +255,26 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
         pending_date = now - timedelta(days=2)
         wrong_check_in = pending_date.replace(hour=10, minute=30, second=0, microsecond=0)
         wrong_check_out = pending_date.replace(hour=17, minute=0, second=0, microsecond=0)
+        # Valores propuestos para la corrección
+        proposed_check_in = pending_date.replace(hour=9, minute=0, second=0, microsecond=0)
+        proposed_check_out = pending_date.replace(hour=18, minute=0, second=0, microsecond=0)
 
         pending_fichaje = Fichaje(
             user_id=employee.id,  # type: ignore
             check_in=wrong_check_in,
             check_out=wrong_check_out,
             status=FichajeStatus.PENDING_CORRECTION,
-            correction_motivo="Olvidé fichar a tiempo, llegué a las 9:00",
+            correction_reason="Olvidé fichar a tiempo, llegué a las 9:00 y salí a las 18:00",
             correction_requested_at=now - timedelta(hours=2),
+            proposed_check_in=proposed_check_in,
+            proposed_check_out=proposed_check_out,
         )
         session.add(pending_fichaje)
         created_fichajes.append(pending_fichaje)
 
         print(f"\n   ⏳ Fichaje pendiente para {employee.full_name}:")
         print(
-            f"      ⚠️  {pending_date.strftime('%d/%m')}: 10:30 - 17:00 → Solicitud: 09:00 - 18:00"
+            f"      ⚠️  {pending_date.strftime('%d/%m')}: 10:30 - 17:00 → Propuesta: 09:00 - 18:00"
         )
 
     # Crear un fichaje rechazado para el tercer empleado
@@ -284,7 +289,7 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
             check_in=rejected_check_in,
             check_out=rejected_check_out,
             status=FichajeStatus.REJECTED,
-            correction_motivo="Tuve una cita médica",
+            correction_reason="Tuve una cita médica",
             correction_requested_at=now - timedelta(days=2),
             approval_notes="Necesitas presentar justificante médico",
             approved_at=now - timedelta(days=1),
@@ -296,6 +301,30 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
         print(
             f"      🚫 {rejected_date.strftime('%d/%m')}: Solicitud rechazada - Falta justificante"
         )
+
+    # Crear un fichaje corregido y aprobado para el cuarto empleado
+    if len(employees) > 3:  # noqa: PLR2004
+        employee = employees[3]
+        corrected_date = now - timedelta(days=5)
+        # Los valores finales (ya corregidos)
+        corrected_check_in = corrected_date.replace(hour=9, minute=0, second=0, microsecond=0)
+        corrected_check_out = corrected_date.replace(hour=18, minute=0, second=0, microsecond=0)
+
+        corrected_fichaje = Fichaje(
+            user_id=employee.id,  # type: ignore
+            check_in=corrected_check_in,
+            check_out=corrected_check_out,
+            status=FichajeStatus.CORRECTED,
+            correction_reason="Error al fichar, entré a las 9:00 no a las 10:00",
+            correction_requested_at=now - timedelta(days=4),
+            approval_notes="Corrección aprobada. Horario verificado con el supervisor.",
+            approved_at=now - timedelta(days=3),
+        )
+        session.add(corrected_fichaje)
+        created_fichajes.append(corrected_fichaje)
+
+        print(f"\n   ✅ Fichaje corregido y aprobado para {employee.full_name}:")
+        print(f"      ✔️  {corrected_date.strftime('%d/%m')}: 09:00 - 18:00 (Corrección aprobada)")
 
     await session.commit()
 
@@ -592,8 +621,10 @@ async def seed_database(clear: bool = True) -> None:
             print("\n💾 FICHAJES DE EJEMPLO:")
             print("   - Fichajes completos de la semana para 3 empleados")
             print("   - 1 fichaje activo (solo entrada, sin salida)")
-            print("   - 1 fichaje pendiente de corrección (esperando aprobación HR)")
+            print("   - 1 fichaje pendiente de corrección con valores propuestos")
+            print("     · proposed_check_in/proposed_check_out almacenan los valores solicitados")
             print("   - 1 fichaje rechazado (con motivo de rechazo)")
+            print("   - 1 fichaje corregido y aprobado (corrección aplicada)")
             print("\n🏖️  SOLICITUDES DE VACACIONES:")
             print("   - 5 solicitudes aprobadas (vacaciones, bajas, permisos)")
             print("   - 4 solicitudes pendientes de revisión")

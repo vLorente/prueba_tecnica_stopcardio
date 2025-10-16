@@ -1,6 +1,6 @@
 """Modelo de fichaje para registro de entradas/salidas."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -47,6 +47,10 @@ class Fichaje(BaseModel, table=True):
     correction_reason: str | None = Field(default=None, max_length=1000)
     correction_requested_at: datetime | None = Field(default=None)
 
+    # Valores propuestos en la corrección
+    proposed_check_in: datetime | None = Field(default=None)
+    proposed_check_out: datetime | None = Field(default=None)
+
     # Información de aprobación
     approved_by: int | None = Field(default=None, foreign_key="user.id")
     approved_by_user: "User" = Relationship(
@@ -64,7 +68,18 @@ class Fichaje(BaseModel, table=True):
         """
         if not self.check_out:
             return None
-        delta = self.check_out - self.check_in
+
+        # Normalizar timezone para evitar errores al restar datetime
+        check_in = self.check_in
+        check_out = self.check_out
+
+        # Si uno tiene timezone y el otro no, agregar UTC a los naive
+        if check_in.tzinfo is None and check_out.tzinfo is not None:
+            check_in = check_in.replace(tzinfo=UTC)
+        elif check_out.tzinfo is None and check_in.tzinfo is not None:
+            check_out = check_out.replace(tzinfo=UTC)
+
+        delta = check_out - check_in
         return round(delta.total_seconds() / 3600, 2)
 
     @property

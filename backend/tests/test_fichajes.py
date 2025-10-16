@@ -440,3 +440,221 @@ class TestFichajeStats:
         data = response.json()
         assert "total_fichajes" in data
         assert data["total_fichajes"] >= 1
+
+
+# ============================================================================
+# TESTS PARA NUEVOS CAMPOS: proposed_check_in y proposed_check_out
+# ============================================================================
+
+
+class TestProposedCorrections:
+    """Tests for proposed_check_in and proposed_check_out fields."""
+
+    async def test_proposed_fields_in_correction_request(
+        self, authenticated_client: AsyncClient, employee_fichaje: Fichaje
+    ):
+        """Test that proposed fields are populated when requesting correction."""
+        original_check_in = employee_fichaje.check_in
+        original_check_out = employee_fichaje.check_out
+
+        new_check_in = (original_check_in + timedelta(hours=1)).isoformat()
+        new_check_out = (original_check_out + timedelta(hours=1)).isoformat()
+
+        response = await authenticated_client.post(
+            f"/api/fichajes/{employee_fichaje.id}/correct",
+            json={
+                "check_in": new_check_in,
+                "check_out": new_check_out,
+                "correction_reason": "Solicito corrección de horario por error al fichar",
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Verificar que el estado cambió a pending_correction
+        assert data["status"] == "pending_correction"
+
+        # Verificar que los valores ORIGINALES NO cambiaron
+        # Los datetimes vienen con Z al final por el serializer
+        assert original_check_in.isoformat().replace("+00:00", "") in data["check_in"]
+        assert original_check_out.isoformat().replace("+00:00", "") in data["check_out"]
+
+        # Verificar que los valores PROPUESTOS se guardaron
+        assert data["proposed_check_in"] is not None
+        assert data["proposed_check_out"] is not None
+        # Los nuevos valores también vienen en formato ISO con Z
+        new_check_in_clean = new_check_in.replace("+00:00", "").replace("Z", "")
+        new_check_out_clean = new_check_out.replace("+00:00", "").replace("Z", "")
+        assert new_check_in_clean in data["proposed_check_in"]
+        assert new_check_out_clean in data["proposed_check_out"]
+
+    async def test_proposed_fields_applied_on_approval(
+        self,
+        hr_authenticated_client: AsyncClient,
+        session: AsyncSession,
+        employee_user: User,
+    ):
+        """Test that proposed fields are applied when HR approves correction."""
+        # Crear fichaje con valores originales
+        original_check_in = datetime.now(UTC) - timedelta(hours=8)
+        original_check_out = datetime.now(UTC) - timedelta(hours=1)
+
+        fichaje = Fichaje(
+            user_id=employee_user.id,
+            check_in=original_check_in,
+            check_out=original_check_out,
+            status=FichajeStatus.VALID,
+        )
+        session.add(fichaje)
+        await session.commit()
+        await session.refresh(fichaje)
+
+        # Solicitar corrección con nuevos valores
+        new_check_in = original_check_in + timedelta(hours=1)
+        new_check_out = original_check_out + timedelta(hours=1)
+
+        # Simular que se solicitó corrección (actualizar directamente)
+        fichaje.status = FichajeStatus.PENDING_CORRECTION
+        fichaje.proposed_check_in = new_check_in
+        fichaje.proposed_check_out = new_check_out
+        fichaje.correction_reason = "Horario corregido"
+        fichaje.correction_requested_at = datetime.now(UTC)
+        await session.commit()
+        await session.refresh(fichaje)
+
+        # HR aprueba la corrección
+        response = await hr_authenticated_client.post(
+            f"/api/fichajes/{fichaje.id}/approve",
+            json={
+                "approved": True,
+                "approval_notes": "Corrección aprobada correctamente",
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Verificar que el estado cambió a corrected
+        assert data["status"] == "corrected"
+
+        # Verificar que los valores PROPUESTOS se APLICARON
+        assert data["check_in"] == new_check_in.isoformat().replace("+00:00", "Z")
+        assert data["check_out"] == new_check_out.isoformat().replace("+00:00", "Z")
+
+        # Verificar que los valores PROPUESTOS se LIMPIARON
+        assert data["proposed_check_in"] is None
+        assert data["proposed_check_out"] is None
+
+    async def test_proposed_fields_cleared_on_rejection(
+        self,
+        hr_authenticated_client: AsyncClient,
+        session: AsyncSession,
+        employee_user: User,
+    ):
+        """Test that proposed fields are cleared when HR rejects correction."""
+        # Crear fichaje con valores originales
+        original_check_in = datetime.now(UTC) - timedelta(hours=8)
+        original_check_out = datetime.now(UTC) - timedelta(hours=1)
+
+        fichaje = Fichaje(
+            user_id=employee_user.id,
+            check_in=original_check_in,
+            check_out=original_check_out,
+            status=FichajeStatus.VALID,
+        )
+        session.add(fichaje)
+        await session.commit()
+        await session.refresh(fichaje)
+
+        # Solicitar corrección con nuevos valores
+        new_check_in = original_check_in + timedelta(hours=1)
+        new_check_out = original_check_out + timedelta(hours=1)
+
+        # Simular que se solicitó corrección
+        fichaje.status = FichajeStatus.PENDING_CORRECTION
+        fichaje.proposed_check_in = new_check_in
+        fichaje.proposed_check_out = new_check_out
+        fichaje.correction_reason = "Horario corregido"
+        fichaje.correction_requested_at = datetime.now(UTC)
+        await session.commit()
+        await session.refresh(fichaje)
+
+        # HR rechaza la corrección
+        response = await hr_authenticated_client.post(
+            f"/api/fichajes/{fichaje.id}/approve",
+            json={
+                "approved": False,
+                "approval_notes": "Corrección rechazada - datos incorrectos",
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Verificar que el estado cambió a rejected
+        assert data["status"] == "rejected"
+
+        # Verificar que los valores ORIGINALES NO cambiaron
+        assert data["check_in"] == original_check_in.isoformat().replace("+00:00", "Z")
+        assert data["check_out"] == original_check_out.isoformat().replace("+00:00", "Z")
+
+        # Verificar que los valores PROPUESTOS se LIMPIARON
+        assert data["proposed_check_in"] is None
+        assert data["proposed_check_out"] is None
+
+    async def test_proposed_fields_null_by_default(self, authenticated_client: AsyncClient):
+        """Test that proposed fields are null when fichaje is created."""
+        # Realizar check-in
+        response = await authenticated_client.post(
+            "/api/fichajes/check-in",
+            json={"notes": "Test fichaje"},
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+
+        # Verificar que los campos proposed son null por defecto
+        assert data["proposed_check_in"] is None
+        assert data["proposed_check_out"] is None
+        assert data["status"] == "valid"
+
+    async def test_list_fichajes_includes_proposed_fields(
+        self,
+        hr_authenticated_client: AsyncClient,
+        session: AsyncSession,
+        employee_user: User,
+    ):
+        """Test that list endpoint includes proposed fields."""
+        # Crear fichaje con corrección pendiente
+        fichaje = Fichaje(
+            user_id=employee_user.id,
+            check_in=datetime.now(UTC) - timedelta(hours=8),
+            check_out=datetime.now(UTC) - timedelta(hours=1),
+            status=FichajeStatus.PENDING_CORRECTION,
+            proposed_check_in=datetime.now(UTC) - timedelta(hours=7),
+            proposed_check_out=datetime.now(UTC),
+            correction_reason="Test correction",
+            correction_requested_at=datetime.now(UTC),
+        )
+        session.add(fichaje)
+        await session.commit()
+
+        # Listar fichajes
+        response = await hr_authenticated_client.get("/api/fichajes/")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # Buscar el fichaje en la lista
+        fichajes = data["fichajes"]
+        found = False
+        for f in fichajes:
+            if f["id"] == fichaje.id:
+                found = True
+                assert f["status"] == "pending_correction"
+                assert f["proposed_check_in"] is not None
+                assert f["proposed_check_out"] is not None
+                break
+
+        assert found, "Fichaje no encontrado en la lista"

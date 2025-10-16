@@ -9,7 +9,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.api.dependencies.auth import CurrentHR, CurrentUser
 from app.core.exceptions import NotFoundException
 from app.database import get_session
-from app.models.fichaje import FichajeStatus
+from app.models.fichaje import Fichaje, FichajeStatus
+from app.models.user import User
 from app.repositories.fichaje_repository import FichajeRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.fichaje import (
@@ -27,6 +28,41 @@ from app.services.fichaje_service import FichajeService
 router = APIRouter(tags=["Fichajes"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
+
+def _build_fichaje_response(fichaje: Fichaje, user: User | None = None) -> FichajeResponse:
+    """Construye una respuesta de fichaje con todos los campos.
+
+    Args:
+        fichaje: Instancia de Fichaje con relaciones cargadas.
+        user: Usuario opcional para sobrescribir email y nombre.
+
+    Returns:
+        FichajeResponse con todos los campos.
+    """
+    user_email = user.email if user else (fichaje.user.email if fichaje.user else "")
+    user_full_name = user.full_name if user else (fichaje.user.full_name if fichaje.user else "")
+
+    return FichajeResponse(
+        id=fichaje.id,  # type: ignore
+        user_id=fichaje.user_id,
+        user_email=user_email,
+        user_full_name=user_full_name,
+        check_in=fichaje.check_in,
+        check_out=fichaje.check_out,
+        hours_worked=fichaje.hours_worked,
+        status=fichaje.status,
+        notes=fichaje.notes,
+        correction_reason=fichaje.correction_reason,
+        correction_requested_at=fichaje.correction_requested_at,
+        proposed_check_in=fichaje.proposed_check_in,
+        proposed_check_out=fichaje.proposed_check_out,
+        approved_by=fichaje.approved_by,
+        approved_at=fichaje.approved_at,
+        approval_notes=fichaje.approval_notes,
+        created_at=fichaje.created_at,  # type: ignore
+        updated_at=fichaje.updated_at,  # type: ignore
+    )
 
 
 def _date_to_datetime(d: date | None) -> datetime | None:
@@ -71,24 +107,7 @@ async def check_in(
         notes=data.notes,
     )
 
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=current_user.email,
-        user_full_name=current_user.full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje, current_user)
 
 
 @router.post(
@@ -109,24 +128,7 @@ async def check_out(
         notes=data.notes,
     )
 
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=current_user.email,
-        user_full_name=current_user.full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje, current_user)
 
 
 @router.get(
@@ -163,27 +165,7 @@ async def list_fichajes(
     )
 
     # Convertir a responses
-    fichaje_responses = [
-        FichajeResponse(
-            id=f.id,  # type: ignore
-            user_id=f.user_id,
-            user_email=f.user.email if f.user else "",
-            user_full_name=f.user.full_name if f.user else "",
-            check_in=f.check_in,
-            check_out=f.check_out,
-            hours_worked=f.hours_worked,
-            status=f.status,
-            notes=f.notes,
-            correction_reason=f.correction_reason,
-            correction_requested_at=f.correction_requested_at,
-            approved_by=f.approved_by,
-            approved_at=f.approved_at,
-            approval_notes=f.approval_notes,
-            created_at=f.created_at,  # type: ignore
-            updated_at=f.updated_at,  # type: ignore
-        )
-        for f in fichajes
-    ]
+    fichaje_responses = [_build_fichaje_response(f) for f in fichajes]
 
     page = (skip // limit) + 1 if limit > 0 else 1
 
@@ -219,27 +201,7 @@ async def get_my_fichajes(
         limit=limit,
     )
 
-    fichaje_responses = [
-        FichajeResponse(
-            id=f.id,  # type: ignore
-            user_id=f.user_id,
-            user_email=current_user.email,
-            user_full_name=current_user.full_name,
-            check_in=f.check_in,
-            check_out=f.check_out,
-            hours_worked=f.hours_worked,
-            status=f.status,
-            notes=f.notes,
-            correction_reason=f.correction_reason,
-            correction_requested_at=f.correction_requested_at,
-            approved_by=f.approved_by,
-            approved_at=f.approved_at,
-            approval_notes=f.approval_notes,
-            created_at=f.created_at,  # type: ignore
-            updated_at=f.updated_at,  # type: ignore
-        )
-        for f in fichajes
-    ]
+    fichaje_responses = [_build_fichaje_response(f, current_user) for f in fichajes]
 
     page = (skip // limit) + 1 if limit > 0 else 1
 
@@ -272,24 +234,7 @@ async def get_my_active_fichaje(
             details={"user_id": current_user.id},
         )
 
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=current_user.email,
-        user_full_name=current_user.full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje, current_user)
 
 
 @router.get(
@@ -325,29 +270,9 @@ async def get_fichaje(
     current_user: CurrentUser,
 ) -> FichajeResponse:
     """Obtiene un fichaje por ID."""
-    fichaje = await fichaje_service.get_by_id(fichaje_id, current_user)
+    fichaje = await fichaje_service.get_by_id(fichaje_id=fichaje_id, current_user=current_user)
 
-    user_email = fichaje.user.email if fichaje.user else ""
-    user_full_name = fichaje.user.full_name if fichaje.user else ""
-
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=user_email,
-        user_full_name=user_full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje)
 
 
 @router.post(
@@ -369,24 +294,7 @@ async def request_correction(
         user=current_user,
     )
 
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=current_user.email,
-        user_full_name=current_user.full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje, current_user)
 
 
 @router.post(
@@ -408,27 +316,7 @@ async def approve_correction(
         hr_user=current_hr,
     )
 
-    user_email = fichaje.user.email if fichaje.user else ""
-    user_full_name = fichaje.user.full_name if fichaje.user else ""
-
-    return FichajeResponse(
-        id=fichaje.id,  # type: ignore
-        user_id=fichaje.user_id,
-        user_email=user_email,
-        user_full_name=user_full_name,
-        check_in=fichaje.check_in,
-        check_out=fichaje.check_out,
-        hours_worked=fichaje.hours_worked,
-        status=fichaje.status,
-        notes=fichaje.notes,
-        correction_reason=fichaje.correction_reason,
-        correction_requested_at=fichaje.correction_requested_at,
-        approved_by=fichaje.approved_by,
-        approved_at=fichaje.approved_at,
-        approval_notes=fichaje.approval_notes,
-        created_at=fichaje.created_at,  # type: ignore
-        updated_at=fichaje.updated_at,  # type: ignore
-    )
+    return _build_fichaje_response(fichaje)
 
 
 @router.get(

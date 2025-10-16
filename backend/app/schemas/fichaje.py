@@ -108,6 +108,10 @@ class FichajeResponse(BaseModel):
     correction_reason: str | None
     correction_requested_at: datetime | None
 
+    # Valores propuestos en la corrección
+    proposed_check_in: datetime | None
+    proposed_check_out: datetime | None
+
     # Información de aprobación
     approved_by: int | None
     approved_at: datetime | None
@@ -123,6 +127,8 @@ class FichajeResponse(BaseModel):
         "check_in",
         "check_out",
         "correction_requested_at",
+        "proposed_check_in",
+        "proposed_check_out",
         "approved_at",
         "created_at",
         "updated_at",

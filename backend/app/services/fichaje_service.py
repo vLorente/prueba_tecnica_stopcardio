@@ -210,8 +210,11 @@ class FichajeService:
         fichaje.correction_requested_at = datetime.now(UTC)
         fichaje.status = FichajeStatus.PENDING_CORRECTION
 
-        # Guardar los nuevos valores temporalmente en las notas
-        # (se aplicarán al aprobar)
+        # Guardar los valores propuestos para aplicarlos si se aprueba
+        fichaje.proposed_check_in = correction_data.check_in
+        fichaje.proposed_check_out = correction_data.check_out
+
+        # Agregar nota informativa
         correction_note = (
             f"CORRECCIÓN SOLICITADA:\nNuevo check_in: {correction_data.check_in.isoformat()}\n"
         )
@@ -275,13 +278,22 @@ class FichajeService:
         fichaje.approval_notes = approval.approval_notes
 
         if approval.approved:
-            # Aprobar: cambiar estado y aplicar corrección
-            # Extraer los nuevos valores de las notas (formato simple)
-            # En producción, esto debería estar en campos separados
+            # Aprobar: aplicar los valores propuestos y cambiar estado
+            if fichaje.proposed_check_in:
+                fichaje.check_in = fichaje.proposed_check_in
+            if fichaje.proposed_check_out:
+                fichaje.check_out = fichaje.proposed_check_out
+
             fichaje.status = FichajeStatus.CORRECTED
+
+            # Limpiar valores propuestos después de aplicarlos
+            fichaje.proposed_check_in = None
+            fichaje.proposed_check_out = None
         else:
-            # Rechazar: volver a estado anterior
+            # Rechazar: mantener valores originales y limpiar propuestos
             fichaje.status = FichajeStatus.REJECTED
+            fichaje.proposed_check_in = None
+            fichaje.proposed_check_out = None
 
         return await self.fichaje_repo.update(fichaje)
 
