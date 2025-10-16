@@ -49,8 +49,8 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f("ix_solicitud_user_id"), ["user_id"], unique=False)
 
     with op.batch_alter_table("user", schema=None) as batch_op:
-        batch_op.add_column(sa.Column("dias_vacaciones_anuales", sa.Integer(), nullable=False, server_default="22"))
-        batch_op.add_column(sa.Column("dias_vacaciones_disponibles", sa.Float(), nullable=False, server_default="22.0"))
+        batch_op.add_column(sa.Column("dias_vacaciones_anuales", sa.Integer(), nullable=False, server_default="24"))
+        batch_op.add_column(sa.Column("dias_vacaciones_disponibles", sa.Float(), nullable=False, server_default="24.0"))
 
     # ### end Alembic commands ###
 
