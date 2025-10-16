@@ -1,0 +1,151 @@
+<div class="fichajes-container">
+  <!-- Error Message -->
+  @if (error(); as errorMsg) {
+    <div class="alert alert-error">
+      <span>{{ errorMsg }}</span>
+      <button (click)="onCloseError()" class="btn-close" aria-label="Cerrar">×</button>
+    </div>
+  }
+
+  <!-- Registro de Fichaje -->
+  <div class="fichaje-register-section">
+    <h2>Registrar Fichaje</h2>
+
+    <!-- Fichaje Activo -->
+    @if (fichajeActivo(); as activo) {
+      <div class="fichaje-activo-card">
+        <div class="activo-info">
+          <span class="activo-label">Fichaje en curso</span>
+          <div class="activo-time">
+            <span class="time-label">Entrada:</span>
+            <span class="time-value">{{ activo.checkIn | date: 'HH:mm' }}</span>
+          </div>
+          <div class="activo-elapsed">
+            <span>Tiempo transcurrido: <strong>{{ getElapsedTime(activo.checkIn) }}</strong></span>
+          </div>
+        </div>
+        <button
+          (click)="onCheckOut()"
+          [disabled]="processingCheckOut() || loading()"
+          class="btn btn-checkout">
+          @if (processingCheckOut()) {
+            <span class="spinner"></span>
+          }
+          Registrar Salida
+        </button>
+      </div>
+    } @else {
+      <div class="fichaje-buttons">
+        <button
+          (click)="onCheckIn()"
+          [disabled]="processingCheckIn() || loading()"
+          class="btn btn-checkin">
+          @if (processingCheckIn()) {
+            <span class="spinner"></span>
+          }
+          Registrar Entrada
+        </button>
+        <p class="btn-help-text">
+          Registra tu hora de entrada al comenzar la jornada laboral
+        </p>
+      </div>
+    }
+  </div>
+
+  <!-- Historial de Fichajes -->
+  <div class="fichajes-history-section">
+    <div class="history-header">
+      <h2>Historial de Fichajes</h2>
+      <div class="history-stats">
+        <span class="stat-item">
+          <strong>{{ total() }}</strong> fichajes
+        </span>
+        <span class="stat-item">
+          <strong>{{ totalHours().toFixed(2) }}h</strong> totales
+        </span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading() && fichajes().length === 0) {
+      <div class="loading-state">
+        <div class="spinner-large"></div>
+        <p>Cargando historial...</p>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading() && fichajes().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No hay fichajes registrados</h3>
+        <p>Comienza registrando tu primera entrada</p>
+      </div>
+    }
+
+    <!-- Fichajes Table -->
+    @if (fichajes().length > 0) {
+      <div class="fichajes-table-container">
+        <table class="fichajes-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th>Horas</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fichaje of fichajes(); track fichaje.id) {
+              <tr>
+                <td>
+                  <span class="date-cell">
+                    {{ fichaje.checkIn | date: 'dd/MM/yyyy' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="time-cell">{{ fichaje.checkIn | date: 'HH:mm' }}</span>
+                </td>
+                <td>
+                  <span class="time-cell">
+                    {{ fichaje.checkOut ? (fichaje.checkOut | date: 'HH:mm') : '--' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="hours-cell">{{ formatHours(fichaje.hoursWorked) }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(fichaje)">
+                    {{ getStatusText(fichaje) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button
+          (click)="onPreviousPage()"
+          [disabled]="!hasPrevPage() || loading()"
+          class="btn btn-pagination">
+          ← Anterior
+        </button>
+
+        <span class="pagination-info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+        </span>
+
+        <button
+          (click)="onNextPage()"
+          [disabled]="!hasNextPage() || loading()"
+          class="btn btn-pagination">
+          Siguiente →
+        </button>
+      </div>
+    }
+  </div>
+</div>

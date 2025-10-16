@@ -19,8 +19,12 @@ export class ApiService {
   /**
    * GET request
    */
-  get<T>(endpoint: string, options?: { headers?: HttpHeaders }): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}${endpoint}`, options)
+  get<T>(endpoint: string, params?: any, options?: { headers?: HttpHeaders }): Observable<T> {
+    const httpOptions = {
+      ...options,
+      params
+    };
+    return this.http.get<T>(`${this.apiUrl}${endpoint}`, httpOptions)
       .pipe(catchError(this.handleError));
   }
 
