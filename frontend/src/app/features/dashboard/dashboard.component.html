@@ -1,0 +1,76 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>¡Bienvenido, {{ authService.fullName() }}!</h1>
+    <p class="date">{{ currentDate | date:'fullDate':'':'es-ES' }}</p>
+  </div>
+
+  <div class="quick-actions">
+    <h2>Acciones Rápidas</h2>
+
+    <div class="actions-grid">
+      <!-- Fichajes Card -->
+      <a routerLink="/fichajes" class="action-card">
+        <div class="card-icon">⏰</div>
+        <h3>Fichajes</h3>
+        <p>Registra tu entrada o salida</p>
+      </a>
+
+      <!-- Vacaciones Card -->
+      <a routerLink="/vacaciones" class="action-card">
+        <div class="card-icon">🏖️</div>
+        <h3>Vacaciones</h3>
+        <p>Solicita días de ausencia</p>
+      </a>
+
+      <!-- Profile Card -->
+      <a routerLink="/profile" class="action-card">
+        <div class="card-icon">👤</div>
+        <h3>Mi Perfil</h3>
+        <p>Ver información personal</p>
+      </a>
+
+      <!-- HR Only: Usuarios Card -->
+      @if (authService.isHR()) {
+        <a routerLink="/usuarios" class="action-card card-hr">
+          <div class="card-icon">👥</div>
+          <h3>Gestión de Usuarios</h3>
+          <p>Administrar empleados</p>
+        </a>
+      }
+    </div>
+  </div>
+
+  <div class="info-section">
+    <div class="info-card">
+      <h3>Tu Rol</h3>
+      <span
+        class="role-badge"
+        [class.badge-hr]="authService.isHR()"
+        [class.badge-employee]="!authService.isHR()">
+        {{ authService.isHR() ? 'Recursos Humanos' : 'Empleado' }}
+      </span>
+      @if (authService.isHR()) {
+        <p class="info-text">
+          Tienes permisos de administración para gestionar empleados,
+          aprobar solicitudes y visualizar todos los registros.
+        </p>
+      } @else {
+        <p class="info-text">
+          Puedes gestionar tus fichajes y solicitar vacaciones o ausencias.
+        </p>
+      }
+    </div>
+
+    <div class="info-card">
+      <h3>Recordatorios</h3>
+      <ul class="reminders-list">
+        <li>✓ Recuerda fichar al entrar y salir</li>
+        <li>✓ Solicita vacaciones con antelación</li>
+        <li>✓ Mantén tu perfil actualizado</li>
+        @if (authService.isHR()) {
+          <li>✓ Revisa solicitudes pendientes regularmente</li>
+        }
+      </ul>
+    </div>
+  </div>
+</div>

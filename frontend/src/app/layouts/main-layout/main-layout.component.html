@@ -1,0 +1,72 @@
+<div class="layout">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="logo">StopCardio HR</h1>
+        <nav class="nav-menu">
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="active"
+            class="nav-link">
+            Dashboard
+          </a>
+          <a
+            routerLink="/fichajes"
+            routerLinkActive="active"
+            class="nav-link">
+            Fichajes
+          </a>
+          <a
+            routerLink="/vacaciones"
+            routerLinkActive="active"
+            class="nav-link">
+            Vacaciones
+          </a>
+          @if (authService.isHR()) {
+            <a
+              routerLink="/usuarios"
+              routerLinkActive="active"
+              class="nav-link">
+              Usuarios
+            </a>
+          }
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <div class="user-menu">
+          <span class="user-name">{{ authService.fullName() }}</span>
+          <span
+            class="user-role"
+            [class.role-hr]="authService.isHR()"
+            [class.role-employee]="authService.isEmployee()">
+            {{ authService.isHR() ? 'RRHH' : 'Empleado' }}
+          </span>
+        </div>
+        <button
+          routerLink="/profile"
+          class="btn-icon"
+          title="Ver perfil">
+          👤
+        </button>
+        <button
+          (click)="onLogout()"
+          class="btn-logout"
+          title="Cerrar sesión">
+          Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2025 StopCardio HR Management System</p>
+  </footer>
+</div>

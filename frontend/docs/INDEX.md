@@ -54,8 +54,27 @@ Incluye criterios de aceptación y endpoints para cada historia.
 - Computed values y reactive state
 - Guards e interceptors funcionales
 
+### 7. [CHANGELOG.md](./CHANGELOG.md)
+**Registro de cambios por iteración**
+- Log detallado de cada iteración (0-6)
+- Features añadidas, cambiadas, corregidas
+- Tecnologías aplicadas por iteración
+- Estado del proyecto en cada hito
 
 ## 🎯 Para Comenzar el Desarrollo
+
+## 🗂️ Iteraciones
+
+En esta carpeta encontrarás un resumen por iteración (0-6) con objetivos, artefactos y criterios de aceptación:
+
+- [Iteración 0 - Configuración del Entorno](./iteraciones/iteracion-0.md)
+- [Iteración 1 - Autenticación Básica](./iteraciones/iteracion-1.md)
+- [Iteración 2 - Módulo de Fichajes](./iteraciones/iteracion-2.md)
+- [Iteración 3 - Módulo de Vacaciones](./iteraciones/iteracion-3.md)
+- [Iteración 4 - Gestión RRHH: Aprobaciones](./iteraciones/iteracion-4.md)
+- [Iteración 5 - Gestión de Usuarios (CRUD)](./iteraciones/iteracion-5.md)
+- [Iteración 6 - Pulido Final y Documentación](./iteraciones/iteracion-6.md)
+
 
 ### Paso 1: Leer Requisitos
 👉 [REQUISITOS.md](./REQUISITOS.md)

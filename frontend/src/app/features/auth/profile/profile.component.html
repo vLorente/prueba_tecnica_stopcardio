@@ -1,0 +1,54 @@
+<div class="profile-container">
+  @if (user(); as currentUser) {
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          {{ getInitials(currentUser.full_name) }}
+        </div>
+        <div class="profile-info">
+          <h1>{{ fullName() }}</h1>
+          <span
+            class="profile-badge"
+            [class.badge-hr]="isHR()"
+            [class.badge-employee]="!isHR()">
+            {{ roleDisplay() }}
+          </span>
+        </div>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-group">
+          <label>Email</label>
+          <span>{{ currentUser.email }}</span>
+        </div>        <div class="detail-group">
+          <label>Estado</label>
+          <span
+            class="status-badge"
+            [class.status-active]="currentUser.is_active"
+            [class.status-inactive]="!currentUser.is_active">
+            {{ currentUser.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+
+        <div class="detail-group">
+          <label>Fecha de registro</label>
+          <span>{{ formatDate(currentUser.created_at) }}</span>
+        </div>
+
+        @if (currentUser.updated_at !== currentUser.created_at) {
+          <div class="detail-group">
+            <label>Última actualización</label>
+            <span>{{ formatDate(currentUser.updated_at) }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="profile-note">
+        <p>
+          <strong>Nota:</strong> La información del perfil es de solo lectura.
+          Para modificar tus datos, contacta con el departamento de Recursos Humanos.
+        </p>
+      </div>
+    </div>
+  }
+</div>

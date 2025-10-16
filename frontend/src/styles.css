@@ -1,1 +1,97 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global CSS Variables - Design System */
+:root {
+  /* Primary Colors - Indigo/Blue Palette */
+  --color-primary: #5a67d8;
+  --color-primary-dark: #4c51bf;
+  --color-primary-light: #7f9cf5;
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f7fafc;
+  --color-bg-tertiary: #f0f4f8;
+
+  /* Text Colors */
+  --color-text-primary: #2d3748;
+  --color-text-secondary: #4a5568;
+  --color-text-muted: #718096;
+  --color-text-light: #a0aec0;
+
+  /* Border Colors */
+  --color-border-primary: #e2e8f0;
+  --color-border-secondary: #cbd5e0;
+
+  /* Status Colors - Pastel Palette */
+  --color-success-bg: #c6f6d5;
+  --color-success-text: #22543d;
+  --color-error-bg: #fed7d7;
+  --color-error-text: #c53030;
+  --color-warning-bg: #feebc8;
+  --color-warning-text: #c05621;
+  --color-info-bg: #bee3f8;
+  --color-info-text: #2c5282;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+}
+
+/* Global Reset */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Utility Classes */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+
+.bg-white { background-color: var(--color-bg-primary); }
+.bg-gray { background-color: var(--color-bg-secondary); }
+
+.border { border: 1px solid var(--color-border-primary); }
+.border-secondary { border: 1px solid var(--color-border-secondary); }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
