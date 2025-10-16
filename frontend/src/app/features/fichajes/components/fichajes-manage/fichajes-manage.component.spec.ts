@@ -21,6 +21,8 @@ describe('FichajesManageComponent', () => {
     notes: null,
     correctionReason: 'Olvidé fichar a la hora correcta',
     correctionRequestedAt: new Date(2025, 9, 16, 18, 0, 0),
+    proposedCheckIn: new Date(2025, 9, 16, 8, 30, 0),
+    proposedCheckOut: new Date(2025, 9, 16, 17, 30, 0),
     approvedBy: null,
     approvedAt: null,
     approvalNotes: null,
@@ -60,8 +62,8 @@ describe('FichajesManageComponent', () => {
     await loadPromise;
 
     expect(mockFichajesService.loadAllFichajes).toHaveBeenCalledWith({ status: 'pending_correction' });
-    expect(component.pendingCorrections().length).toBe(1);
-    expect(component.pendingCorrections()[0].status).toBe('pending_correction');
+    expect(component.corrections().length).toBe(1);
+    expect(component.corrections()[0].status).toBe('pending_correction');
   }));
 
   it('should load all pending corrections from all users', fakeAsync(async () => {
@@ -73,13 +75,13 @@ describe('FichajesManageComponent', () => {
     ];
     mockFichajesService.fichajes.set(allFichajes);
 
-    const loadPromise = component.loadPendingCorrections();
+    const loadPromise = component.loadCorrections();
     tick();
     await loadPromise;
 
     // Verificar que carga todos los fichajes pendientes, no solo los del usuario actual
     expect(mockFichajesService.loadAllFichajes).toHaveBeenCalledWith({ status: 'pending_correction' });
-    expect(component.pendingCorrections().length).toBe(3);
+    expect(component.corrections().length).toBe(3);
   }));
 
   it('should open approval modal', () => {
@@ -215,7 +217,7 @@ describe('FichajesManageComponent', () => {
     mockFichajesService.fichajes.set([]);
     fixture.detectChanges();
 
-    expect(component.hasPendingCorrections()).toBe(false);
+    expect(component.hasCorrections()).toBe(false);
   });
 
   it('should show loading state', () => {
@@ -240,5 +242,118 @@ describe('FichajesManageComponent', () => {
 
     expect(mockFichajesService.aprobarCorreccion).not.toHaveBeenCalled();
     expect(mockFichajesService.rechazarCorreccion).not.toHaveBeenCalled();
+  });
+
+  describe('Status Display', () => {
+    it('should return correct display for pending_correction status', () => {
+      const display = component.getStatusDisplay('pending_correction');
+      expect(display.label).toBe('Pendiente');
+    });
+
+    it('should return correct display for corrected status', () => {
+      const display = component.getStatusDisplay('corrected');
+      expect(display.label).toBe('Aprobada');
+    });
+
+    it('should return correct display for rejected status', () => {
+      const display = component.getStatusDisplay('rejected');
+      expect(display.label).toBe('Rechazada');
+    });
+
+    it('should return correct display for valid status', () => {
+      const display = component.getStatusDisplay('valid');
+      expect(display.label).toBe('Válido');
+    });
+  });
+
+  describe('Edit Permissions', () => {
+    it('should allow editing fichaje with pending_correction status', () => {
+      const canEdit = component.canEditFichaje(mockPendingFichaje);
+      expect(canEdit).toBe(true);
+    });
+
+    it('should not allow editing fichaje with corrected status', () => {
+      const correctedFichaje: Fichaje = { ...mockPendingFichaje, status: 'corrected' };
+      const canEdit = component.canEditFichaje(correctedFichaje);
+      expect(canEdit).toBe(false);
+    });
+
+    it('should not allow editing fichaje with rejected status', () => {
+      const rejectedFichaje: Fichaje = { ...mockPendingFichaje, status: 'rejected' };
+      const canEdit = component.canEditFichaje(rejectedFichaje);
+      expect(canEdit).toBe(false);
+    });
+
+    it('should not allow editing fichaje with valid status', () => {
+      const validFichaje: Fichaje = { ...mockPendingFichaje, status: 'valid' };
+      const canEdit = component.canEditFichaje(validFichaje);
+      expect(canEdit).toBe(false);
+    });
+  });
+
+  describe('Correction Fields Display', () => {
+    it('should return "Entrada y Salida" when both check-in and check-out are proposed', () => {
+      const label = component.getCorrectionFieldsLabel(mockPendingFichaje);
+      expect(label).toBe('Entrada y Salida');
+    });
+
+    it('should return "Entrada" when only check-in is proposed', () => {
+      const fichajeCheckInOnly: Fichaje = {
+        ...mockPendingFichaje,
+        proposedCheckIn: new Date(2025, 9, 16, 8, 30, 0),
+        proposedCheckOut: null
+      };
+      const label = component.getCorrectionFieldsLabel(fichajeCheckInOnly);
+      expect(label).toBe('Entrada');
+    });
+
+    it('should return "Salida" when only check-out is proposed', () => {
+      const fichajeCheckOutOnly: Fichaje = {
+        ...mockPendingFichaje,
+        proposedCheckIn: null,
+        proposedCheckOut: new Date(2025, 9, 16, 17, 30, 0)
+      };
+      const label = component.getCorrectionFieldsLabel(fichajeCheckOutOnly);
+      expect(label).toBe('Salida');
+    });
+
+    it('should return "N/A" for fichaje without correction reason', () => {
+      const fichajeWithoutCorrection: Fichaje = {
+        ...mockPendingFichaje,
+        correctionReason: null,
+        proposedCheckIn: null,
+        proposedCheckOut: null
+      };
+      const label = component.getCorrectionFieldsLabel(fichajeWithoutCorrection);
+      expect(label).toBe('N/A');
+    });
+
+    it('should return "N/A" when correction reason exists but no proposed changes', () => {
+      const fichajeNoProposedChanges: Fichaje = {
+        ...mockPendingFichaje,
+        proposedCheckIn: null,
+        proposedCheckOut: null
+      };
+      const label = component.getCorrectionFieldsLabel(fichajeNoProposedChanges);
+      expect(label).toBe('N/A');
+    });
+  });
+
+  describe('Detail Modal', () => {
+    it('should open detail modal', () => {
+      component.openDetailModal(mockPendingFichaje);
+
+      expect(component.isDetailModalOpen()).toBe(true);
+      expect(component.detailFichaje()).toEqual(mockPendingFichaje);
+    });
+
+    it('should close detail modal', () => {
+      component.openDetailModal(mockPendingFichaje);
+
+      component.closeDetailModal();
+
+      expect(component.isDetailModalOpen()).toBe(false);
+      expect(component.detailFichaje()).toBeNull();
+    });
   });
 });

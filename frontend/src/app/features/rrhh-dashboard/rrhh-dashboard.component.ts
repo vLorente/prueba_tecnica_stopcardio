@@ -19,18 +19,18 @@ export class RrhhDashboardComponent {
    */
   readonly features = [
     {
-      title: 'Gestión de Vacaciones',
-      description: 'Revisar y aprobar/rechazar solicitudes de vacaciones de los empleados',
-      icon: '📋',
-      route: '/rrhh/aprobaciones',
-      color: '#667eea'
-    },
-    {
       title: 'Gestión de Fichajes',
       description: 'Revisar y aprobar/rechazar solicitudes de corrección de fichajes',
       icon: '✏️',
       route: '/rrhh/correcciones',
       color: '#f59e0b'
+    },
+    {
+      title: 'Gestión de Vacaciones',
+      description: 'Revisar y aprobar/rechazar solicitudes de vacaciones de los empleados',
+      icon: '📋',
+      route: '/rrhh/aprobaciones',
+      color: '#667eea'
     },
     {
       title: 'Gestión de Usuarios',

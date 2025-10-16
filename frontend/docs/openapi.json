@@ -1485,9 +1485,9 @@
           "user_id": { "type": "integer", "title": "User Id" },
           "user_email": { "type": "string", "title": "User Email" },
           "user_full_name": { "type": "string", "title": "User Full Name" },
-          "check_in": { "type": "string", "format": "date-time", "title": "Check In" },
+          "check_in": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Check In" },
           "check_out": {
-            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Check Out"
           },
           "hours_worked": {
@@ -1501,23 +1501,37 @@
             "title": "Correction Reason"
           },
           "correction_requested_at": {
-            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Correction Requested At"
+          },
+          "proposed_check_in": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Proposed Check In"
+          },
+          "proposed_check_out": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Proposed Check Out"
           },
           "approved_by": {
             "anyOf": [{ "type": "integer" }, { "type": "null" }],
             "title": "Approved By"
           },
           "approved_at": {
-            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Approved At"
           },
           "approval_notes": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Approval Notes"
           },
-          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
-          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+          "created_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Updated At"
+          }
         },
         "type": "object",
         "required": [
@@ -1532,6 +1546,8 @@
           "notes",
           "correction_reason",
           "correction_requested_at",
+          "proposed_check_in",
+          "proposed_check_out",
           "approved_by",
           "approved_at",
           "approval_notes",
@@ -1660,7 +1676,7 @@
             "title": "Reviewed By Name"
           },
           "reviewed_at": {
-            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Reviewed At"
           },
           "comentarios_revision": {
@@ -1670,8 +1686,14 @@
           "is_pending": { "type": "boolean", "title": "Is Pending" },
           "is_approved": { "type": "boolean", "title": "Is Approved" },
           "is_active": { "type": "boolean", "title": "Is Active" },
-          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
-          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+          "created_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Updated At"
+          }
         },
         "type": "object",
         "required": [

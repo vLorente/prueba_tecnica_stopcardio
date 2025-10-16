@@ -1,7 +1,23 @@
 <div class="fichajes-manage-container">
   <div class="header">
     <h1>Gestión de Correcciones de Fichajes</h1>
-    <p class="subtitle">Solicitudes pendientes de aprobación</p>
+    <p class="subtitle">Gestión de solicitudes de corrección</p>
+  </div>
+
+  <!-- Filtro de estado -->
+  <div class="filters">
+    <label for="status-filter">Filtrar por estado:</label>
+    <select
+      id="status-filter"
+      [value]="statusFilter()"
+      (change)="onStatusFilterChange($any($event.target).value)"
+      class="filter-select"
+    >
+      <option value="all">Todos</option>
+      <option value="pending_correction">Pendientes</option>
+      <option value="corrected">Aprobadas</option>
+      <option value="rejected">Rechazadas</option>
+    </select>
   </div>
 
   <!-- Loading -->
@@ -19,25 +35,26 @@
     </div>
   }
 
-  <!-- No hay solicitudes pendientes -->
-  @if (!loading() && !hasPendingCorrections()) {
+  <!-- No hay solicitudes -->
+  @if (!loading() && !hasCorrections()) {
     <div class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h3>No hay solicitudes pendientes</h3>
-      <p>Todas las correcciones han sido procesadas</p>
+      <h3>No hay solicitudes</h3>
+      <p>No se encontraron correcciones con el filtro seleccionado</p>
     </div>
   }
 
   <!-- Tabla de solicitudes -->
-  @if (!loading() && hasPendingCorrections()) {
+  @if (!loading() && hasCorrections()) {
     <div class="corrections-table-container">
       <table class="corrections-table">
         <thead>
           <tr>
             <th>Usuario</th>
             <th>Solicitado</th>
+            <th>Estado</th>
             <th>Datos Originales</th>
             <th>Datos Solicitados</th>
             <th>Motivo</th>
@@ -45,7 +62,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (fichaje of pendingCorrections(); track fichaje.id) {
+          @for (fichaje of corrections(); track fichaje.id) {
             <tr>
               <!-- Usuario -->
               <td>
@@ -60,6 +77,11 @@
                 <div class="date-info">
                   {{ formatDate(fichaje.correctionRequestedAt) }}
                 </div>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                {{ getStatusDisplay(fichaje.status).label }}
               </td>
 
               <!-- Datos originales -->
@@ -82,15 +104,15 @@
 
               <!-- Datos solicitados -->
               <td>
-                <div class="datetime-group highlight">
-                  <div class="datetime-row">
-                    <span class="label">Entrada:</span>
-                    <span class="value changed">Nueva fecha/hora</span>
-                  </div>
-                  <div class="datetime-row">
-                    <span class="label">Salida:</span>
-                    <span class="value changed">Nueva fecha/hora</span>
-                  </div>
+                <div class="correction-summary">
+                  <span class="correction-fields">{{ getCorrectionFieldsLabel(fichaje) }}</span>
+                  <button
+                    class="btn-detail"
+                    (click)="openDetailModal(fichaje)"
+                    type="button"
+                  >
+                    Ver detalle
+                  </button>
                 </div>
               </td>
 
@@ -105,24 +127,26 @@
               <td>
                 <div class="actions">
                   <button
-                    class="btn btn-approve"
+                    class="btn-icon btn-approve"
                     (click)="openApprovalModal(fichaje)"
-                    title="Aprobar corrección"
+                    type="button"
+                    [disabled]="!canEditFichaje(fichaje)"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    Aprobar
+                    <span class="btn-text">Aprobar</span>
                   </button>
                   <button
-                    class="btn btn-reject"
+                    class="btn-icon btn-reject"
                     (click)="openRejectionModal(fichaje)"
-                    title="Rechazar corrección"
+                    type="button"
+                    [disabled]="!canEditFichaje(fichaje)"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    Rechazar
+                    <span class="btn-text">Rechazar</span>
                   </button>
                 </div>
               </td>
@@ -213,5 +237,14 @@
         </div>
       </div>
     </div>
+  }
+
+  <!-- Modal de detalle usando componente -->
+  @if (detailFichaje()) {
+    <app-correction-detail-modal
+      [fichaje]="detailFichaje()!"
+      [isOpen]="isDetailModalOpen()"
+      (close)="closeDetailModal()"
+    />
   }
 </div>

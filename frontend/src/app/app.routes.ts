@@ -41,7 +41,7 @@ export const routes: Routes = [
       // HR Administration Routes
       {
         path: 'rrhh',
-        loadComponent: () => import('@features/rrhh/rrhh-dashboard.component').then(m => m.RrhhDashboardComponent),
+        loadComponent: () => import('@/app/features/rrhh-dashboard/rrhh-dashboard.component').then(m => m.RrhhDashboardComponent),
         canActivate: [hrGuard]
       },
       {

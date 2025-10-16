@@ -11,13 +11,15 @@ describe('FichajeCorrectionModalComponent', () => {
     userId: 1,
     userEmail: 'test@example.com',
     userFullName: 'Test User',
-    checkIn: new Date(2025, 9, 16, 8, 0, 0), // 16 Oct 2025, 08:00 (local)
-    checkOut: new Date(2025, 9, 16, 17, 0, 0), // 16 Oct 2025, 17:00 (local)
+    checkIn: new Date(2025, 9, 16, 8, 0, 0),
+    checkOut: new Date(2025, 9, 16, 17, 0, 0),
     hoursWorked: 9.0,
     status: 'valid',
     notes: null,
     correctionReason: null,
     correctionRequestedAt: null,
+    proposedCheckIn: null,
+    proposedCheckOut: null,
     approvedBy: null,
     approvedAt: null,
     approvalNotes: null,

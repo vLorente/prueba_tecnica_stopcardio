@@ -39,6 +39,8 @@ export function mapFichajeApiToFichaje(api: FichajeApi): Fichaje {
     notes: api.notes,
     correctionReason: api.correction_reason,
     correctionRequestedAt: api.correction_requested_at ? new Date(api.correction_requested_at) : null,
+    proposedCheckIn: api.proposed_check_in ? new Date(api.proposed_check_in) : null,
+    proposedCheckOut: api.proposed_check_out ? new Date(api.proposed_check_out) : null,
     approvedBy: api.approved_by,
     approvedAt: api.approved_at ? new Date(api.approved_at) : null,
     approvalNotes: api.approval_notes,

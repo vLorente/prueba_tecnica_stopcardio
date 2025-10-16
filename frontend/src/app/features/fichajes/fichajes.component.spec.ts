@@ -23,6 +23,8 @@ describe('FichajesComponent', () => {
     notes: null,
     correctionReason: null,
     correctionRequestedAt: null,
+    proposedCheckIn: null,
+    proposedCheckOut: null,
     approvedBy: null,
     approvedAt: null,
     approvalNotes: null,

@@ -26,6 +26,8 @@ export interface Fichaje {
   notes: string | null;
   correctionReason: string | null;
   correctionRequestedAt: Date | null;
+  proposedCheckIn: Date | null;
+  proposedCheckOut: Date | null;
   approvedBy: number | null;
   approvedAt: Date | null;
   approvalNotes: string | null;
@@ -49,6 +51,8 @@ export interface FichajeApi {
   notes: string | null;
   correction_reason: string | null;
   correction_requested_at: string | null;
+  proposed_check_in: string | null;
+  proposed_check_out: string | null;
   approved_by: number | null;
   approved_at: string | null;
   approval_notes: string | null;

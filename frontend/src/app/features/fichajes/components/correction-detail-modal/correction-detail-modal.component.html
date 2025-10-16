@@ -1,0 +1,152 @@
+@if (isOpen()) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-container modal-detail" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalle de Solicitud de Corrección</h2>
+        <button
+          class="modal-close"
+          (click)="onClose()"
+          type="button"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Usuario -->
+        <div class="detail-section">
+          <h3 class="detail-title">Usuario</h3>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-label">Nombre:</span>
+              <span class="detail-value">{{ fichaje().userFullName }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">{{ fichaje().userEmail }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="detail-section">
+          <h3 class="detail-title">Estado de la Solicitud</h3>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-label">Estado:</span>
+              <span class="detail-value">{{ getStatusLabel(fichaje().status) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Solicitado:</span>
+              <span class="detail-value">{{ formatDate(fichaje().correctionRequestedAt) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivo -->
+        <div class="detail-section">
+          <h3 class="detail-title">Motivo de la Solicitud</h3>
+          <div class="detail-content">
+            <p class="detail-reason">{{ fichaje().correctionReason }}</p>
+          </div>
+        </div>
+
+        <!-- Comparación de datos -->
+        <div class="detail-section">
+          <h3 class="detail-title">Comparación de Datos</h3>
+          <div class="comparison-grid">
+            <!-- Datos Originales -->
+            <div class="comparison-column">
+              <h4 class="comparison-subtitle">Datos Originales</h4>
+              <div class="comparison-card">
+                <div class="comparison-row">
+                  <span class="comparison-label">Entrada:</span>
+                  <span class="comparison-value">{{ formatDate(fichaje().checkIn) }}</span>
+                </div>
+                <div class="comparison-row">
+                  <span class="comparison-label">Salida:</span>
+                  <span class="comparison-value">{{ formatDate(fichaje().checkOut) }}</span>
+                </div>
+                <div class="comparison-row highlight">
+                  <span class="comparison-label">Horas:</span>
+                  <span class="comparison-value">{{ calculateHours(fichaje().checkIn, fichaje().checkOut) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos Solicitados -->
+            <div class="comparison-column">
+              <h4 class="comparison-subtitle requested">Datos Solicitados</h4>
+              <div class="comparison-card requested">
+                <div class="comparison-row">
+                  <span class="comparison-label">Entrada:</span>
+                  <span class="comparison-value" [class.changed]="fichaje().proposedCheckIn !== null">
+                    {{ formatDate(fichaje().proposedCheckIn || fichaje().checkIn) }}
+                    @if (fichaje().proposedCheckIn !== null) {
+                      <span class="change-badge">Modificado</span>
+                    }
+                  </span>
+                </div>
+                <div class="comparison-row">
+                  <span class="comparison-label">Salida:</span>
+                  <span class="comparison-value" [class.changed]="fichaje().proposedCheckOut !== null">
+                    {{ formatDate(fichaje().proposedCheckOut || fichaje().checkOut) }}
+                    @if (fichaje().proposedCheckOut !== null) {
+                      <span class="change-badge">Modificado</span>
+                    }
+                  </span>
+                </div>
+                <div class="comparison-row highlight">
+                  <span class="comparison-label">Horas:</span>
+                  <span class="comparison-value">
+                    {{ calculateHours(
+                      fichaje().proposedCheckIn || fichaje().checkIn,
+                      fichaje().proposedCheckOut || fichaje().checkOut
+                    ) }}
+                  </span>
+                </div>
+                @if (!fichaje().proposedCheckIn && !fichaje().proposedCheckOut) {
+                  <div class="comparison-note">
+                    <strong>Nota:</strong> No hay cambios propuestos disponibles. Es posible que esta corrección haya sido creada antes de la actualización del sistema.
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notas de aprobación/rechazo (si existen) -->
+        @if (fichaje().approvalNotes) {
+          <div class="detail-section">
+            <h3 class="detail-title">
+              @if (fichaje().status === 'corrected') {
+                Comentarios de Aprobación
+              } @else if (fichaje().status === 'rejected') {
+                Motivo de Rechazo
+              }
+            </h3>
+            <div class="detail-content">
+              <p class="detail-notes">{{ fichaje().approvalNotes }}</p>
+              @if (fichaje().approvedAt) {
+                <p class="detail-timestamp">
+                  Procesado el {{ formatDate(fichaje().approvedAt) }}
+                </p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onClose()"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}

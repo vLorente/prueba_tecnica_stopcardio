@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FichajesService } from '@features/fichajes/services/fichajes.service';
-import type { Fichaje } from '@core/models/fichaje.model';
+import { CorrectionDetailModalComponent } from '@features/fichajes/components/correction-detail-modal/correction-detail-modal.component';
+import type { Fichaje, FichajeStatus } from '@core/models/fichaje.model';
 
 /**
  * Componente para que RRHH gestione las solicitudes de corrección de fichajes
@@ -9,7 +10,7 @@ import type { Fichaje } from '@core/models/fichaje.model';
  */
 @Component({
   selector: 'app-fichajes-manage',
-  imports: [CommonModule],
+  imports: [CommonModule, CorrectionDetailModalComponent],
   templateUrl: './fichajes-manage.component.html',
   styleUrl: './fichajes-manage.component.css'
 })
@@ -17,39 +18,116 @@ export class FichajesManageComponent implements OnInit {
   private fichajesService = inject(FichajesService);
 
   // State
-  readonly pendingCorrections = signal<Fichaje[]>([]);
+  readonly corrections = signal<Fichaje[]>([]);
   readonly selectedFichaje = signal<Fichaje | null>(null);
   readonly isModalOpen = signal(false);
   readonly modalAction = signal<'approve' | 'reject'>('approve');
   readonly modalNotes = signal('');
   readonly isProcessing = signal(false);
+  readonly statusFilter = signal<FichajeStatus | 'all'>('pending_correction');
+
+  // Modal de detalle
+  readonly isDetailModalOpen = signal(false);
+  readonly detailFichaje = signal<Fichaje | null>(null);
 
   // Computed
   readonly loading = computed(() => this.fichajesService.loading());
   readonly error = computed(() => this.fichajesService.error());
 
-  readonly hasPendingCorrections = computed(() => {
-    return this.pendingCorrections().length > 0;
+  readonly hasCorrections = computed(() => {
+    return this.corrections().length > 0;
   });
 
   async ngOnInit(): Promise<void> {
-    await this.loadPendingCorrections();
+    await this.loadCorrections();
   }
 
   /**
-   * Carga las solicitudes de corrección pendientes
+   * Carga las correcciones según el filtro de estado
    */
-  async loadPendingCorrections(): Promise<void> {
+  async loadCorrections(): Promise<void> {
     try {
-      // Cargar TODOS los fichajes con status='pending_correction' usando endpoint de RRHH
-      await this.fichajesService.loadAllFichajes({ status: 'pending_correction' });
+      const status = this.statusFilter();
+
+      // Si el filtro es 'all', no enviamos el parámetro status
+      const params = status === 'all' ? {} : { status };
+
+      // Cargar TODOS los fichajes filtrados usando endpoint de RRHH
+      await this.fichajesService.loadAllFichajes(params);
 
       // Los fichajes ya vienen filtrados por la API
       const allFichajes = this.fichajesService.fichajes();
-      this.pendingCorrections.set(allFichajes);
+      this.corrections.set(allFichajes);
     } catch (error) {
-      console.error('Error al cargar solicitudes pendientes:', error);
+      console.error('Error al cargar solicitudes:', error);
     }
+  }
+
+  /**
+   * Cambia el filtro de estado y recarga
+   */
+  async onStatusFilterChange(status: FichajeStatus | 'all'): Promise<void> {
+    this.statusFilter.set(status);
+    await this.loadCorrections();
+  }
+
+  /**
+   * Formatea el estado de un fichaje para mostrar en UI
+   */
+  getStatusDisplay(status: FichajeStatus): { label: string } {
+    const statusMap: Record<FichajeStatus, { label: string }> = {
+      pending_correction: { label: 'Pendiente' },
+      corrected: { label: 'Aprobada' },
+      rejected: { label: 'Rechazada' },
+      valid: { label: 'Válido' }
+    };
+    return statusMap[status] || { label: status };
+  }
+
+  /**
+   * Verifica si un fichaje puede ser editado (está en estado pendiente)
+   */
+  canEditFichaje(fichaje: Fichaje): boolean {
+    return fichaje.status === 'pending_correction';
+  }
+
+  /**
+   * Determina qué campos se solicitan cambiar en la corrección
+   * Compara los datos originales con los propuestos
+   */
+  getCorrectionFieldsLabel(fichaje: Fichaje): string {
+    if (!fichaje.correctionReason || (!fichaje.proposedCheckIn && !fichaje.proposedCheckOut)) {
+      return 'N/A';
+    }
+
+    const hasCheckInChange = fichaje.proposedCheckIn !== null;
+    const hasCheckOutChange = fichaje.proposedCheckOut !== null;
+
+    if (hasCheckInChange && hasCheckOutChange) {
+      return 'Entrada y Salida';
+    } else if (hasCheckInChange) {
+      return 'Entrada';
+    } else if (hasCheckOutChange) {
+      return 'Salida';
+    }
+
+    return 'N/A';
+  }
+
+  /**
+   * Abre el modal de detalle de la solicitud
+   */
+  openDetailModal(fichaje: Fichaje): void {
+    this.detailFichaje.set(fichaje);
+    this.isDetailModalOpen.set(true);
+  }
+
+  /**
+   * Cierra el modal de detalle
+   */
+  closeDetailModal(): void {
+    this.isDetailModalOpen.set(false);
+    this.detailFichaje.set(null);
   }
 
   /**
@@ -100,8 +178,8 @@ export class FichajesManageComponent implements OnInit {
         await this.fichajesService.rechazarCorreccion(fichaje.id, notes || undefined);
       }
 
-      // Recargar lista de pendientes
-      await this.loadPendingCorrections();
+      // Recargar lista
+      await this.loadCorrections();
 
       // Cerrar modal
       this.closeModal();
