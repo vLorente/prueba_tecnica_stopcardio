@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -46,7 +46,9 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
+    // Verify no outstanding HTTP requests
     httpMock.verify();
+    // Clear localStorage
     localStorage.clear();
   });
 
@@ -60,7 +62,7 @@ describe('AuthService', () => {
     expect(service.token()).toBeNull();
   });
 
-  it('should login successfully', async () => {
+  it('should login successfully', fakeAsync(async () => {
     const loginPromise = service.login('test@example.com', 'password123');
 
     const loginReq = httpMock.expectOne('http://localhost:8000/api/auth/login');
@@ -68,11 +70,14 @@ describe('AuthService', () => {
     expect(loginReq.request.body).toEqual({ email: 'test@example.com', password: 'password123' });
     loginReq.flush(mockLoginResponse);
 
+    tick();
+
     // After login, getCurrentUser is called
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
     expect(meReq.request.method).toBe('GET');
     meReq.flush(mockUser);
 
+    tick();
     await loginPromise;
 
     expect(service.isAuthenticated()).toBe(true);
@@ -80,7 +85,7 @@ describe('AuthService', () => {
     expect(service.token()).toBe('test-token');
     expect(localStorage.getItem('auth_token')).toBe('test-token');
     expect(localStorage.getItem('auth_user')).toBeTruthy();
-  });
+  }));
 
   it('should logout successfully', async () => {
     // Setup: login first
@@ -126,43 +131,67 @@ describe('AuthService', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
   });
 
-  it('should compute isHR correctly', async () => {
+  it('should compute isHR correctly', fakeAsync(async () => {
     const hrUser = { ...mockUser, role: 'hr' as const };
     const hrResponse = { ...mockLoginResponse };
 
     const loginPromise = service.login('admin@example.com', 'admin123');
+
+    // Expect login request
     const loginReq = httpMock.expectOne('http://localhost:8000/api/auth/login');
     loginReq.flush(hrResponse);
 
+    tick();
+
+    // Expect /auth/me request after successful login
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
     meReq.flush(hrUser);
 
+    tick();
+    // Wait for login to complete
     await loginPromise;
 
     expect(service.isHR()).toBe(true);
     expect(service.isEmployee()).toBe(false);
-  });
+  }));
 
-  it('should compute fullName correctly', async () => {
+  it('should compute fullName correctly', fakeAsync(async () => {
     const loginPromise = service.login('test@example.com', 'password123');
+
+    // Expect login request
     const loginReq = httpMock.expectOne('http://localhost:8000/api/auth/login');
     loginReq.flush(mockLoginResponse);
 
+    tick();
+
+    // Expect /auth/me request after successful login
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
     meReq.flush(mockUser);
 
+    tick();
+    // Wait for login to complete
     await loginPromise;
 
     expect(service.fullName()).toBe('Test User');
-  });
+  }));
 
   it('should load auth state from localStorage', () => {
-    // Setup localStorage
+    // Setup localStorage before creating service
     localStorage.setItem('auth_token', 'stored-token');
     localStorage.setItem('auth_user', JSON.stringify(mockUser));
 
-    // Create new service instance to trigger constructor
-    const newService = new AuthService();
+    // Reinitialize the TestBed to create a fresh service instance
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: Router, useValue: routerSpy }
+      ]
+    });
+
+    const newService = TestBed.inject(AuthService);
+    httpMock = TestBed.inject(HttpTestingController);
 
     expect(newService.isAuthenticated()).toBe(true);
     expect(newService.user()).toEqual(mockUser);

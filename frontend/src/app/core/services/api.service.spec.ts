@@ -64,7 +64,7 @@ describe('ApiService', () => {
     service.get<any>('/error').subscribe({
       error: (error) => {
         expect(error).toBeTruthy();
-        expect(error.message).toContain('Error');
+        expect(error.message).toBe('Test error');
         done();
       }
     });
