@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import type { User, LoginResponse } from '@core/models/user.model';
+import type { User, UserApi, LoginResponse } from '@core/models/user.model';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -11,6 +11,16 @@ describe('AuthService', () => {
   let routerSpy: jasmine.SpyObj<Router>;
 
   const mockUser: User = {
+    id: 1,
+    email: 'test@example.com',
+    fullName: 'Test User',
+    role: 'employee',
+    isActive: true,
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z'
+  };
+
+  const mockUserApi: UserApi = {
     id: 1,
     email: 'test@example.com',
     full_name: 'Test User',
@@ -75,7 +85,7 @@ describe('AuthService', () => {
     // After login, getCurrentUser is called
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
     expect(meReq.request.method).toBe('GET');
-    meReq.flush(mockUser);
+    meReq.flush(mockUserApi);
 
     tick();
     await loginPromise;
@@ -132,7 +142,7 @@ describe('AuthService', () => {
   });
 
   it('should compute isHR correctly', fakeAsync(async () => {
-    const hrUser = { ...mockUser, role: 'hr' as const };
+    const hrUserApi = { ...mockUserApi, role: 'hr' as const };
     const hrResponse = { ...mockLoginResponse };
 
     const loginPromise = service.login('admin@example.com', 'admin123');
@@ -145,7 +155,7 @@ describe('AuthService', () => {
 
     // Expect /auth/me request after successful login
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
-    meReq.flush(hrUser);
+    meReq.flush(hrUserApi);
 
     tick();
     // Wait for login to complete
@@ -166,7 +176,7 @@ describe('AuthService', () => {
 
     // Expect /auth/me request after successful login
     const meReq = httpMock.expectOne('http://localhost:8000/api/auth/me');
-    meReq.flush(mockUser);
+    meReq.flush(mockUserApi);
 
     tick();
     // Wait for login to complete

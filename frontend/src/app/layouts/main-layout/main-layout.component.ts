@@ -16,7 +16,7 @@ import { AuthService } from '@core/services/auth.service';
 })
 export class MainLayoutComponent {
   private readonly router = inject(Router);
-  readonly authService = inject(AuthService);
+  readonly authService: AuthService = inject(AuthService);
 
   /**
    * Logout handler

@@ -6,7 +6,23 @@
 
 export type UserRole = 'employee' | 'hr';
 
+/**
+ * Frontend User Model (camelCase)
+ */
 export interface User {
+  id: number;
+  email: string;
+  fullName: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Backend User Model (snake_case) - API Response
+ */
+export interface UserApi {
   id: number;
   email: string;
   full_name: string;
@@ -32,7 +48,21 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
+/**
+ * Frontend Create User Model (camelCase)
+ */
 export interface UserCreate {
+  email: string;
+  fullName: string;
+  password: string;
+  role: UserRole;
+  isActive?: boolean;
+}
+
+/**
+ * Backend Create User Model (snake_case) - API Request
+ */
+export interface UserCreateApi {
   email: string;
   full_name: string;
   password: string;
@@ -40,7 +70,21 @@ export interface UserCreate {
   is_active?: boolean;
 }
 
+/**
+ * Frontend Update User Model (camelCase)
+ */
 export interface UserUpdate {
+  email?: string;
+  fullName?: string;
+  password?: string;
+  role?: UserRole;
+  isActive?: boolean;
+}
+
+/**
+ * Backend Update User Model (snake_case) - API Request
+ */
+export interface UserUpdateApi {
   email?: string;
   full_name?: string;
   password?: string;

@@ -3,7 +3,7 @@
     <div class="profile-card">
       <div class="profile-header">
         <div class="profile-avatar">
-          {{ getInitials(currentUser.full_name) }}
+          {{ getInitials(currentUser.fullName) }}
         </div>
         <div class="profile-info">
           <h1>{{ fullName() }}</h1>
@@ -24,21 +24,21 @@
           <label>Estado</label>
           <span
             class="status-badge"
-            [class.status-active]="currentUser.is_active"
-            [class.status-inactive]="!currentUser.is_active">
-            {{ currentUser.is_active ? 'Activo' : 'Inactivo' }}
+            [class.status-active]="currentUser.isActive"
+            [class.status-inactive]="!currentUser.isActive">
+            {{ currentUser.isActive ? 'Activo' : 'Inactivo' }}
           </span>
         </div>
 
         <div class="detail-group">
           <label>Fecha de registro</label>
-          <span>{{ formatDate(currentUser.created_at) }}</span>
+          <span>{{ formatDate(currentUser.createdAt) }}</span>
         </div>
 
-        @if (currentUser.updated_at !== currentUser.created_at) {
+        @if (currentUser.updatedAt !== currentUser.createdAt) {
           <div class="detail-group">
             <label>Última actualización</label>
-            <span>{{ formatDate(currentUser.updated_at) }}</span>
+            <span>{{ formatDate(currentUser.updatedAt) }}</span>
           </div>
         }
       </div>

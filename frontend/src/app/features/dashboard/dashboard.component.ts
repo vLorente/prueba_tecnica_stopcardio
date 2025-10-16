@@ -15,7 +15,7 @@ import { AuthService } from '@core/services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent {
-  readonly authService = inject(AuthService);
+  readonly authService: AuthService = inject(AuthService);
 
   readonly currentDate = new Date();
 }

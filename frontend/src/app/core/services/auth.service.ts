@@ -1,8 +1,10 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, Signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import type { User, LoginRequest, LoginResponse } from '@core/models/user.model';
+import type { User, UserApi, LoginRequest, LoginResponse } from '@core/models/user.model';
+import { mapUserApiToUser } from '@core/mappers/user.mapper';
 
 /**
  * Authentication Service
@@ -18,16 +20,35 @@ export class AuthService {
   // Private signals
   private userSignal = signal<User | null>(null);
   private tokenSignal = signal<string | null>(null);
+  private isAuthenticatedSignal = computed(() => this.userSignal() !== null && this.tokenSignal() !== null);
+  private isHRSignal = computed(() => this.userSignal()?.role === 'hr');
+  private isEmployeeSignal = computed(() => this.userSignal()?.role === 'employee');
+  private fullNameSignal = computed(() => this.userSignal()?.fullName || '');
 
-  // Public readonly signals
-  readonly user = this.userSignal.asReadonly();
-  readonly token = this.tokenSignal.asReadonly();
+  // Public getters
+  get user(): Signal<User | null> {
+    return this.userSignal.asReadonly();
+  }
 
-  // Computed signals
-  readonly isAuthenticated = computed(() => this.user() !== null && this.token() !== null);
-  readonly isHR = computed(() => this.user()?.role === 'hr');
-  readonly isEmployee = computed(() => this.user()?.role === 'employee');
-  readonly fullName = computed(() => this.user()?.full_name || '');
+  get token(): Signal<string | null> {
+    return this.tokenSignal.asReadonly();
+  }
+
+  get isAuthenticated(): Signal<boolean> {
+    return this.isAuthenticatedSignal;
+  }
+
+  get isHR(): Signal<boolean> {
+    return this.isHRSignal;
+  }
+
+  get isEmployee(): Signal<boolean> {
+    return this.isEmployeeSignal;
+  }
+
+  get fullName(): Signal<string> {
+    return this.fullNameSignal;
+  }
 
   constructor() {
     // Load auth state from localStorage on init
@@ -88,9 +109,10 @@ export class AuthService {
    */
   async getCurrentUser(): Promise<User> {
     try {
-      const user = await firstValueFrom(
-        this.apiService.get<User>('/auth/me')
+      const userApi = await firstValueFrom(
+        this.apiService.get<UserApi>('/auth/me')
       );
+      const user = mapUserApiToUser(userApi);
       this.userSignal.set(user);
       this.saveUser(user);
       return user;

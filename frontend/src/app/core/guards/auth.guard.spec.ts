@@ -11,11 +11,11 @@ describe('Auth Guards', () => {
   const mockUser: User = {
     id: 1,
     email: 'test@example.com',
-    full_name: 'Test User',
+    fullName: 'Test User',
     role: 'employee',
-    is_active: true,
-    created_at: '2025-01-01T00:00:00Z',
-    updated_at: '2025-01-01T00:00:00Z'
+    isActive: true,
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z'
   };
 
   beforeEach(() => {
