@@ -237,20 +237,20 @@ async def create_fichajes(session, users: dict[str, User]) -> list[Fichaje]:
                 print(f"      ✓ {day_name} {date.strftime('%d/%m')}: 09:00 - 18:00 (Válido)")
 
     # Crear un fichaje activo (solo entrada) para el primer empleado
-    if employees:
-        employee = employees[0]
-        active_check_in = now.replace(hour=9, minute=0, second=0, microsecond=0)
+    # if employees:
+    #     employee = employees[0]
+    #     active_check_in = now.replace(hour=9, minute=0, second=0, microsecond=0)
 
-        active_fichaje = Fichaje(
-            user_id=employee.id,  # type: ignore
-            check_in=active_check_in,
-            status=FichajeStatus.VALID,
-        )
-        session.add(active_fichaje)
-        created_fichajes.append(active_fichaje)
+    #     active_fichaje = Fichaje(
+    #         user_id=employee.id,  # type: ignore
+    #         check_in=active_check_in,
+    #         status=FichajeStatus.VALID,
+    #     )
+    #     session.add(active_fichaje)
+    #     created_fichajes.append(active_fichaje)
 
-        print(f"\n   🟢 Fichaje activo para {employee.full_name}:")
-        print(f"      ⏱️  Entrada: {active_check_in.strftime('%H:%M')} (sin salida)")
+    #     print(f"\n   🟢 Fichaje activo para {employee.full_name}:")
+    #     print(f"      ⏱️  Entrada: {active_check_in.strftime('%H:%M')} (sin salida)")
 
     # Crear un fichaje pendiente de corrección para el segundo empleado
     if len(employees) > 1:
