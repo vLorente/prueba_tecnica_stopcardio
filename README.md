@@ -11,23 +11,6 @@ Esta repo contiene un backend en FastAPI y un frontend en Angular que permiten:
 
 El proyecto está preparado para ejecutarse con Docker Compose en entornos de desarrollo.
 
-## Stack tecnológico
-
-- Backend: Python 3.13, FastAPI, SQLModel, Alembic
-- Base de datos: PostgreSQL 16
-- Frontend: Angular, TypeScript
-- Web server estático: Nginx (Alpine)
-- Orquestación: Docker + Docker Compose
-
-### ¿Por qué estas tecnologías?
-
-El principal motivo es que son tecnologías modernas y con las que me siento cóomodo trabajando, por lo que puedo ser más productivo y entregar un mejor resultado en el tiempo disponible. Además, me permite apoyarme en github copilot para acelerar las tareas, puesto que al estar familiarizado con estas tecnologías, el uso de copilot es más efectivo.
-
-- **Python + FastAPI**: Rápido desarrollo de APIs, tipado estático, documentación automática con Swagger.
-- **SQLModel**: ORM moderno basado en SQLAlchemy y Pydantic, facilita la definición de modelos y validaciones.
-- **PostgreSQL**: Base de datos relacional robusta y ampliamente utilizada.
-- **Angular**: Framework sólido para aplicaciones web con buen soporte para componentes y gestión de estado.
-
 ## Arrancar con Docker Compose
 
 Construir y arrancar todos los servicios (backend, frontend, db, pgadmin):
@@ -51,6 +34,36 @@ Servicios importantes expuestos en local:
 - Backend API: http://localhost:8000
 - Documentación API (Swagger): http://localhost:8000/docs
 - pgAdmin: http://localhost:5050
+
+## Credenciales de prueba
+### Usuario Empleado
+```
+Username: employee1@stopcardio.com
+Password: password123
+```
+
+### Usuario RRHH
+```
+Username: hr@stopcardio.com
+Password: password123
+```
+
+## Stack tecnológico
+
+- Backend: Python 3.13, FastAPI, SQLModel, Alembic
+- Base de datos: PostgreSQL 16
+- Frontend: Angular, TypeScript
+- Web server estático: Nginx (Alpine)
+- Orquestación: Docker + Docker Compose
+
+### ¿Por qué estas tecnologías?
+
+El principal motivo es que son tecnologías modernas y con las que me siento cóomodo trabajando, por lo que puedo ser más productivo y entregar un mejor resultado en el tiempo disponible. Además, me permite apoyarme en github copilot para acelerar las tareas, puesto que al estar familiarizado con estas tecnologías, el uso de copilot es más efectivo.
+
+- **Python + FastAPI**: Rápido desarrollo de APIs, tipado estático, documentación automática con Swagger.
+- **SQLModel**: ORM moderno basado en SQLAlchemy y Pydantic, facilita la definición de modelos y validaciones.
+- **PostgreSQL**: Base de datos relacional robusta y ampliamente utilizada.
+- **Angular**: Framework sólido para aplicaciones web con buen soporte para componentes y gestión de estado.
 
 ## Notas rápidas
 
