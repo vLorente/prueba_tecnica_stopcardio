@@ -134,13 +134,13 @@ Documentación interactiva (Swagger): `http://localhost:8000/docs`
 
 ### Usuario Empleado
 ```
-Username: employee
+Username: employee1@stopcardio.com
 Password: password123
 ```
 
 ### Usuario RRHH
 ```
-Username: hr
+Username: hr@stopcardio.com
 Password: password123
 ```
 
