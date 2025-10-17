@@ -1,6 +1,6 @@
 # StopCardio — Sistema básico de gestión de fichajes y RRHH
 
-Pequeña aplicación para gestionar fichajes, solicitudes de vacaciones y usuarios. Diseñada para pruebas y despliegue en contenedores.
+Pequeña aplicación para gestionar fichajes, solicitudes de vacaciones y usuarios.
 
 ## Resumen
 
@@ -77,4 +77,5 @@ El principal motivo es que son tecnologías modernas y con las que me siento có
 - [Documentación del Backend](backend/README.md)
 
 ---
+
  
