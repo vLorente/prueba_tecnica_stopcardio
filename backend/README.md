@@ -30,30 +30,13 @@ Backend REST API para gestión de recursos humanos con **FastAPI**, **SQLModel**
 
 ## 🚀 Quick Start
 
-### Opción 1: Docker (Producción)
-
-```bash
-# 1. Configurar variables de entorno
-cp .env.production.example .env
-nano .env  # Editar con tus valores
-
-# 2. Construir imagen
-make docker-build
-
-# 3. Ejecutar contenedor
-make docker-run
-
-# 4. Verificar
-make docker-health
-```
-
-### Opción 2: DevContainer (Desarrollo Recomendado)
+### Opción 1: DevContainer (Desarrollo Recomendado)
 
 1. Abrir en VS Code con Remote Containers
 2. El entorno se configura automáticamente
 3. Servidor iniciado en `http://localhost:8000`
 
-### Opción 3: Setup Manual
+### Opción 2: Setup Manual
 
 ```bash
 # 1. Instalar dependencias
@@ -141,6 +124,7 @@ make seed-clear       # Poblar BD (sin confirmación)
 ```
 
 # Tests y Calidad
+```bash
 make test             # Ejecutar tests (109 tests)
 make lint             # Verificar código con Ruff
 make format           # Formatear código
@@ -217,18 +201,6 @@ app/
 - **Autorización:** Dependency injection en endpoints
 - **Validación:** Pydantic en todas las requests
 
-### Credenciales de Desarrollo
-
-```bash
-# HR
-admin@stopcardio.com / admin123
-hr@stopcardio.com / password123
-
-# Empleados
-employee1@stopcardio.com / password123
-employee@test.com / password123
-```
-
 ---
 
 ## 🧪 Testing
@@ -283,7 +255,6 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ## Documentación
 
 - 📄 [CHANGELOG.md](CHANGELOG.md) - Historial de versiones
-- 📄 [QUICKSTART.md](QUICKSTART.md) - Guía de inicio rápido
 - 📄 [test_api.http](test_api.http) - 115 requests HTTP de ejemplo
 - 📄 [docs/](docs/) - Documentación de iteraciones
 

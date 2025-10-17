@@ -174,7 +174,6 @@ npm test -- --code-coverage
 - **Linting/Formatting**: ESLint + Prettier
 - **Build**: Angular CLI
 - **HTTP Client**: Angular HttpClient
-- **Reactive**: RxJS 7.8
 
 ## 🐳 Docker
 
@@ -212,19 +211,6 @@ Ver `.devcontainer/devcontainer.json` para configuración del entorno de desarro
 
 ## 📖 Guía de Desarrollo
 
-### Generar Componentes
-
-```bash
-# Componente
-make ng cmd="generate component features/fichajes/components/fichaje-card"
-
-# Servicio
-make ng cmd="generate service core/services/fichaje"
-
-# Guard
-make ng cmd="generate guard core/guards/auth"
-```
-
 ### Convenciones de Código
 
 - **Componentes**: PascalCase (`FichajeCardComponent`)
@@ -239,32 +225,6 @@ make ng cmd="generate guard core/guards/auth"
 - Seguir guías de estilo de Angular
 - Comentar código complejo con JSDoc
 - Mantener componentes pequeños y enfocados
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crear una rama de feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit los cambios (`git commit -m 'feat: agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abrir un Pull Request
-
-### Commits Semánticos
-
-- `feat`: Nueva funcionalidad
-- `fix`: Corrección de bug
-- `docs`: Cambios en documentación
-- `style`: Cambios de formato (no afectan código)
-- `refactor`: Refactorización de código
-- `test`: Agregar o modificar tests
-- `chore`: Tareas de mantenimiento
-
-## 📝 Licencia
-
-Este proyecto es privado y confidencial.
-
-## 📧 Contacto
-
-Para dudas o consultas sobre el proyecto, contactar al equipo de desarrollo.
 
 ---
 
