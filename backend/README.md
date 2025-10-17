@@ -104,17 +104,6 @@ make dev              # Iniciar servidor (auto-reload)
 make init_dev         # Setup completo (install + migrate + seed + dev)
 ```
 
-### Docker
-```bash
-make docker-build     # Construir imagen Docker
-make docker-run       # Ejecutar contenedor
-make docker-logs      # Ver logs en tiempo real
-make docker-shell     # Acceder al shell del contenedor
-make docker-stop      # Detener contenedor
-make docker-clean     # Detener y eliminar contenedor
-make docker-health    # Verificar health check
-```
-
 ### Base de Datos
 ```bash
 make migrate          # Aplicar migraciones
@@ -128,7 +117,9 @@ make seed-clear       # Poblar BD (sin confirmación)
 make test             # Ejecutar tests (109 tests)
 make lint             # Verificar código con Ruff
 make format           # Formatear código
+```
 
+```bash
 # Utilidades
 make clean            # Limpiar archivos temporales
 make status           # Verificar estado del entorno
