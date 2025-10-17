@@ -1,4 +1,4 @@
-.PHONY: help install dev test lint format clean migration migrate shell check all status
+.PHONY: help install dev prod test lint format clean migration migrate shell check all status init_dev init_prod
 
 # Variables
 PYTHON := uv run python
@@ -20,6 +20,11 @@ dev: ## Ejecutar servidor de desarrollo
 	@echo "🚀 Iniciando servidor de desarrollo..."
 	@echo "📝 Usando: fastapi dev (con auto-reload)"
 	$(FASTAPI) dev app/main.py --host 0.0.0.0 --port 8000
+
+prod: ## Ejecutar servidor en modo producción
+	@echo "🚀 Iniciando servidor en modo producción..."
+	@echo "📝 Usando: fastapi run (4 workers)"
+	$(FASTAPI) run app/main.py --workers 4
 
 test: ## Ejecutar tests
 	@echo "🧪 Ejecutando tests..."
@@ -108,5 +113,11 @@ init_dev: ## Inicializar entorno de desarrollo (instalar, migrar, seed y ejecuta
 	$(MAKE) migrate
 	$(MAKE) seed-clear
 	$(MAKE) dev
+
+init_prod: ## Inicializar entorno de producción (instalar, migrar y ejecutar) 
+	@echo "🚀 Inicializando entorno de producción..."
+	$(MAKE) install
+	$(MAKE) migrate
+	$(MAKE) prod
 
 .DEFAULT_GOAL := help

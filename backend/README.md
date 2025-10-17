@@ -30,13 +30,30 @@ Backend REST API para gestión de recursos humanos con **FastAPI**, **SQLModel**
 
 ## 🚀 Quick Start
 
-### Opción 1: DevContainer (Recomendado)
+### Opción 1: Docker (Producción)
+
+```bash
+# 1. Configurar variables de entorno
+cp .env.production.example .env
+nano .env  # Editar con tus valores
+
+# 2. Construir imagen
+make docker-build
+
+# 3. Ejecutar contenedor
+make docker-run
+
+# 4. Verificar
+make docker-health
+```
+
+### Opción 2: DevContainer (Desarrollo Recomendado)
 
 1. Abrir en VS Code con Remote Containers
 2. El entorno se configura automáticamente
 3. Servidor iniciado en `http://localhost:8000`
 
-### Opción 2: Setup Manual
+### Opción 3: Setup Manual
 
 ```bash
 # 1. Instalar dependencias
@@ -98,16 +115,30 @@ make dev
 
 ## 🛠️ Comandos Principales
 
+### Desarrollo
 ```bash
-# Desarrollo
 make dev              # Iniciar servidor (auto-reload)
 make init_dev         # Setup completo (install + migrate + seed + dev)
+```
 
-# Base de Datos
+### Docker
+```bash
+make docker-build     # Construir imagen Docker
+make docker-run       # Ejecutar contenedor
+make docker-logs      # Ver logs en tiempo real
+make docker-shell     # Acceder al shell del contenedor
+make docker-stop      # Detener contenedor
+make docker-clean     # Detener y eliminar contenedor
+make docker-health    # Verificar health check
+```
+
+### Base de Datos
+```bash
 make migrate          # Aplicar migraciones
 make migration        # Crear nueva migración
 make seed             # Poblar BD (con confirmación)
 make seed-clear       # Poblar BD (sin confirmación)
+```
 
 # Tests y Calidad
 make test             # Ejecutar tests (109 tests)
