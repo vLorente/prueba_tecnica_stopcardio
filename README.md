@@ -60,8 +60,8 @@ Servicios importantes expuestos en local:
 
 ## Otros documentos
 
-[Documentación del Frontend](frontend/README.md)
-[Documentación del Backend](backend/README.md)
+- [Documentación del Frontend](frontend/README.md)
+- [Documentación del Backend](backend/README.md)
 
 ---
  
