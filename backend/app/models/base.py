@@ -6,6 +6,7 @@ Define campos comunes y funcionalidad compartida.
 
 from datetime import UTC, datetime
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, SQLModel
 
 
@@ -18,14 +19,16 @@ class TimestampMixin(SQLModel):
 
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
+        sa_type=DateTime(timezone=True),
         nullable=False,
-        description="Fecha de creación del registro"
+        description="Fecha de creación del registro",
     )
     updated_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
+        sa_type=DateTime(timezone=True),
         sa_column_kwargs={"onupdate": lambda: datetime.now(UTC)},
         nullable=False,
-        description="Fecha de última actualización del registro"
+        description="Fecha de última actualización del registro",
     )
 
 
@@ -40,8 +43,5 @@ class BaseModel(TimestampMixin, SQLModel):
     """
 
     id: int | None = Field(
-        default=None,
-        primary_key=True,
-        index=True,
-        description="ID único del registro"
+        default=None, primary_key=True, index=True, description="ID único del registro"
     )

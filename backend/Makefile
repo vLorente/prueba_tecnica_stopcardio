@@ -1,4 +1,4 @@
-.PHONY: help install dev prod test lint format clean migration migrate shell check all status init_dev init_prod
+.PHONY: help install dev prod test lint format clean migration migrate shell check all status init_dev init_prod seed-clear-postgres seed-clear seed-no-clear test-cov lint-fix format-check init_prod_seed
 
 # Variables
 PYTHON := uv run python
@@ -79,6 +79,11 @@ seed-clear: ## Ejecutar seed limpiando datos existentes (sin confirmación)
 	@echo "🌱 Ejecutando seed (limpiando datos)..."
 	$(PYTHON) scripts/seed_data.py --clear
 
+seed-clear-postgres: ## Ejecutar seed limpiando datos existentes en postgres (sin confirmación)
+	@echo "🌱 Ejecutando seed (limpiando datos)..."
+	$(PYTHON) scripts/seed_data_psql.py --clear
+
+
 seed-no-clear: ## Ejecutar seed sin limpiar datos existentes
 	@echo "🌱 Ejecutando seed (sin limpiar)..."
 	$(PYTHON) scripts/seed_data.py --no-clear
@@ -114,9 +119,14 @@ init_dev: ## Inicializar entorno de desarrollo (instalar, migrar, seed y ejecuta
 	$(MAKE) seed-clear
 	$(MAKE) dev
 
+init_prod_seed: ## Inicializar entorno de producción (migrar, seed y ejecutar) 
+	@echo "🚀 Inicializando entorno de producción..."
+	$(MAKE) migrate
+	$(MAKE) seed-clear-postgres
+	$(MAKE) prod
+
 init_prod: ## Inicializar entorno de producción (instalar, migrar y ejecutar) 
 	@echo "🚀 Inicializando entorno de producción..."
-	$(MAKE) install
 	$(MAKE) migrate
 	$(MAKE) prod
 

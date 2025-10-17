@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship
 
 from app.models.base import BaseModel
@@ -55,7 +56,9 @@ class Solicitud(BaseModel, table=True):
     reviewed_by_user: "User" = Relationship(
         sa_relationship_kwargs={"foreign_keys": "Solicitud.reviewed_by"}
     )
-    reviewed_at: datetime | None = Field(default=None)
+    reviewed_at: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True), description="Fecha de revisión por HR"
+    )
     comentarios_revision: str | None = Field(default=None, max_length=500)
 
     # Propiedades calculadas

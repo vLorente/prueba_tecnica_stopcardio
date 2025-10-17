@@ -80,10 +80,10 @@ docker-compose*.yml
 .gitlab-ci.yml
 .travis.yml
 
-# Scripts de desarrollo y seed
+# Scripts de desarrollo (excluir algunos, mantener seed_data.py para producción)
 scripts/check_environment.sh
 scripts/start_environment.sh
-scripts/seed_data.py
+# scripts/seed_data.py - NECESARIO para seed en Docker
 scripts/README.md
 
 # Configuración de desarrollo (Makefile se incluye para usar comandos)

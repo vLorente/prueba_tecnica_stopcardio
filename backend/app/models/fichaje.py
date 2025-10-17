@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, Relationship
 
 from app.models.base import BaseModel
@@ -36,8 +37,18 @@ class Fichaje(BaseModel, table=True):
     )
 
     # Datos del fichaje
-    check_in: datetime = Field(index=True, nullable=False)
-    check_out: datetime | None = Field(default=None, index=True)
+    check_in: datetime = Field(
+        sa_type=DateTime(timezone=True),
+        index=True,
+        nullable=False,
+        description="Fecha y hora de entrada",
+    )
+    check_out: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),
+        index=True,
+        description="Fecha y hora de salida",
+    )
 
     # Metadatos
     status: FichajeStatus = Field(default=FichajeStatus.VALID, nullable=False)
@@ -45,18 +56,28 @@ class Fichaje(BaseModel, table=True):
 
     # Información de corrección
     correction_reason: str | None = Field(default=None, max_length=1000)
-    correction_requested_at: datetime | None = Field(default=None)
+    correction_requested_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),
+        description="Fecha de solicitud de corrección",
+    )
 
     # Valores propuestos en la corrección
-    proposed_check_in: datetime | None = Field(default=None)
-    proposed_check_out: datetime | None = Field(default=None)
+    proposed_check_in: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True), description="Entrada propuesta en corrección"
+    )
+    proposed_check_out: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True), description="Salida propuesta en corrección"
+    )
 
     # Información de aprobación
     approved_by: int | None = Field(default=None, foreign_key="user.id")
     approved_by_user: "User" = Relationship(
         sa_relationship_kwargs={"foreign_keys": "Fichaje.approved_by"},
     )
-    approved_at: datetime | None = Field(default=None)
+    approved_at: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True), description="Fecha de aprobación/rechazo"
+    )
     approval_notes: str | None = Field(default=None, max_length=500)
 
     @property

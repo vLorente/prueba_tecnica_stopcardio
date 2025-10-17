@@ -18,6 +18,13 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Instalar dependencias de build necesarias para compilar paquetes de Python
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instalar uv (package manager)
 RUN pip install uv
 
@@ -28,8 +35,10 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Instalar dependencias en un virtualenv
+# Usar uv pip install para mayor compatibilidad
 RUN uv venv /app/.venv && \
-    uv pip install --no-cache -r pyproject.toml
+    . /app/.venv/bin/activate && \
+    uv pip install -r pyproject.toml
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Imagen final optimizada
@@ -49,6 +58,9 @@ RUN apt-get update && \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Instalar uv para poder ejecutar comandos del Makefile
+RUN pip install --no-cache-dir uv
+
 # Crear usuario no-root para ejecutar la aplicación
 RUN useradd -m -u 1000 -s /bin/bash appuser
 
@@ -61,8 +73,12 @@ COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 # Copiar código de la aplicación
 COPY --chown=appuser:appuser app/ /app/app/
 COPY --chown=appuser:appuser alembic/ /app/alembic/
+COPY --chown=appuser:appuser scripts/ /app/scripts/
 COPY --chown=appuser:appuser alembic.ini /app/alembic.ini
 COPY --chown=appuser:appuser Makefile /app/Makefile
+
+# Dar permisos de ejecución a los scripts
+RUN chmod +x /app/scripts/*.sh || true
 
 # Crear directorio para logs (opcional)
 RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
@@ -83,6 +99,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Comando por defecto: ejecutar migraciones y luego el servidor usando comandos del Makefile
-# Nota: En producción con múltiples réplicas, ejecutar migraciones por separado
-CMD ["sh", "-c", "make prod"]
+# Comando por defecto: ejecutar migraciones y luego el servidor usando Makefile
+# make migrate + make prod (sin seed automático por problemas de timezone)
+# Para ejecutar seed manualmente: docker-compose exec backend make seed-clear
+CMD ["sh", "-c", "make init_prod_seed"]

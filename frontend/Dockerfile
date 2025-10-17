@@ -1,19 +1,5 @@
 # =============================================
-# Stage 1: Build Dependencies
-# =============================================
-FROM node:20-alpine AS deps
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies with clean install for reproducible builds
-RUN npm ci --only=production --ignore-scripts && \
-    npm cache clean --force
-
-# =============================================
-# Stage 2: Build Application
+# Stage 1: Build Application
 # =============================================
 FROM node:20-alpine AS builder
 
@@ -22,8 +8,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for build)
-RUN npm ci --ignore-scripts
+# Regenerar package-lock.json si es necesario y luego hacer clean install
+# Esto asegura que el lock esté siempre sincronizado con package.json
+RUN npm install --package-lock-only && npm ci
 
 # Copy source code
 COPY . .
@@ -32,7 +19,7 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # =============================================
-# Stage 3: Production Image
+# Stage 2: Production Image
 # =============================================
 FROM nginx:1.25-alpine AS production
 
@@ -45,11 +32,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built application from builder stage
 COPY --from=builder /app/dist/hr-frontend/browser /usr/share/nginx/html
 
-# Create non-root user for nginx
-RUN addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
-
-# Set correct permissions
+# Set correct permissions (nginx user already exists in the base image)
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
