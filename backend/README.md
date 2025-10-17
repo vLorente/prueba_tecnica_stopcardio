@@ -187,7 +187,7 @@ app/
 ## 🔒 Seguridad
 
 - **Password Hashing:** bcrypt con salt automático
-- **JWT Tokens:** HS256, expiración 15 min
+- **JWT Tokens:** HS256
 - **RBAC:** Roles `EMPLOYEE` y `HR`
 - **Autorización:** Dependency injection en endpoints
 - **Validación:** Pydantic en todas las requests
@@ -246,7 +246,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 ## Documentación
 
 - 📄 [CHANGELOG.md](CHANGELOG.md) - Historial de versiones
-- 📄 [test_api.http](test_api.http) - 115 requests HTTP de ejemplo
+- 📄 [test_api.http](test_api.http) - requests HTTP de ejemplo
 - 📄 [docs/](docs/) - Documentación de iteraciones
 
 ---
